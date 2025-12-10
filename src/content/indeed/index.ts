@@ -26,7 +26,7 @@ export class Indeed {
 
             const parser = new IndeedDynamicFormParser();
             const { fields, continueButton } = parser.parse();
-            this.logger.success("Form parsed successfully", { fieldCount: fields.length, hasContinueButton: !!continueButton });
+            this.logger.success("Form parsed successfully", { fields, continueButton });
 
             const auto = new IndeedAutoFiller();
             await auto.autofill(fields, this.AUTOFILL_DATA);

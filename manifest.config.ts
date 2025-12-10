@@ -19,7 +19,7 @@ export default defineManifest({
   ],
   content_scripts: [{
     js: ['src/content/main.tsx'],
-    matches: ['https://*.indeed.com/*'],
+    matches: ['https://*.indeed.com/*', "https://chatgpt.com/?temporary-chat=true&bot=true"],
     run_at: 'document_end',
   }],
   side_panel: {

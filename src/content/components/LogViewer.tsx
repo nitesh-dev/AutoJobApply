@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { logStore } from '../logger/store';
 import { LogEntry, LogLevel } from '../logger/types';
 import './LogViewer.css';
@@ -19,6 +19,7 @@ export function LogViewer({
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [isExpanded, setIsExpanded] = useState(true);
   const [selectedLog, setSelectedLog] = useState<string | null>(null);
+  const logListRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const unsubscribe = logStore.subscribe((newLogs) => {
@@ -27,6 +28,13 @@ export function LogViewer({
 
     return unsubscribe;
   }, []);
+
+  // Auto scroll to end when logs change
+  useEffect(() => {
+    if (logListRef.current) {
+      logListRef.current.scrollTop = logListRef.current.scrollHeight;
+    }
+  }, [logs]);
 
   const filteredLogs = filterLevels
     ? logs.filter(log => filterLevels.includes(log.level))
@@ -90,7 +98,7 @@ export function LogViewer({
       </div>
 
       {isExpanded && (
-        <div className="log-viewer-content" style={{ maxHeight }}>
+        <div className="log-viewer-content" style={{ maxHeight }} ref={logListRef}>
           {filteredLogs.length === 0 ? (
             <div className="log-empty">No logs yet</div>
           ) : (
