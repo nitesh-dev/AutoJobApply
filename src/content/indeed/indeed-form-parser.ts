@@ -177,9 +177,7 @@ export class IndeedDynamicFormParser {
       }
       
       return {
-        id: uuid,
-        label: this.getLabel(htmlEl),
-        name: htmlEl.getAttribute("name") || undefined,
+        name: uuid,
         selector: finalSelector,
         type: "button",
         value: undefined,
@@ -239,9 +237,7 @@ export class IndeedDynamicFormParser {
       const value = this.extractValue(htmlEl, type);
 
       const field: FormField = {
-        id: uuid,
-        label: this.getLabel(htmlEl),
-        name: htmlEl.getAttribute("name") || undefined,
+        name: uuid,
         selector: finalSelector,
         type,
         value,

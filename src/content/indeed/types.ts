@@ -7,9 +7,7 @@ export interface SelectOption {
 }
 
 export interface FormField {
-    id: string;
-    label?: string;
-    name?: string;
+    name: string;
     selector: string;
     type: FieldType;
     value?: string | boolean;
