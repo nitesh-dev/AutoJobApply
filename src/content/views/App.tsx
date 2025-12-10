@@ -2,7 +2,6 @@ import Logo from '@/assets/crx.svg'
 import { useState, useEffect } from 'react'
 import './App.css'
 import { LogViewer } from '../components/LogViewer'
-import { logger } from '../logger'
 import { logStore } from '../logger/store'
 
 function App() {

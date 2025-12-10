@@ -110,8 +110,6 @@ class Logger {
   }
 }
 
-// Export singleton instance
-export const logger = new Logger();
 
 // Export class for custom instances
 export { Logger };

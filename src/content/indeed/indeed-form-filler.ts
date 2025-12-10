@@ -1,7 +1,10 @@
+import { Logger } from "../logger";
 import { FormField } from "./types";
-import { logger } from "../logger";
+
 
 export class IndeedAutoFiller {
+
+    private logger = new Logger();
     async wait(ms: number) {
         return new Promise((resolve) => setTimeout(resolve, ms));
     }
@@ -19,7 +22,7 @@ export class IndeedAutoFiller {
     fillField(field: FormField, value: any) {
         const el = this.getElement(field.selector);
         if (!el) {
-            logger.warning(`Element not found for field: ${field.name}`);
+            this.logger.warning(`Element not found for field: ${field.name}`);
             return false;
         }
 
@@ -27,7 +30,7 @@ export class IndeedAutoFiller {
             (el as HTMLInputElement).value = value;
             el.dispatchEvent(new Event("input", { bubbles: true }));
             el.dispatchEvent(new Event("change", { bubbles: true }));
-            logger.success(`Filled ${field.type}: ${field.name} = "${value}"`);
+            this.logger.success(`Filled ${field.type}: ${field.name} = "${value}"`);
             return true;
         }
 
@@ -35,7 +38,7 @@ export class IndeedAutoFiller {
             (el as HTMLInputElement).checked = Boolean(value);
             el.dispatchEvent(new Event("input", { bubbles: true }));
             el.dispatchEvent(new Event("change", { bubbles: true }));
-            logger.success(`Set ${field.type}: ${field.name} = ${value}`);
+            this.logger.success(`Set ${field.type}: ${field.name} = ${value}`);
             return true;
         }
 
@@ -46,11 +49,11 @@ export class IndeedAutoFiller {
     async fillSelect(field: FormField, value: string) {
         const el = this.getElement(field.selector);
         if (!el) {
-            logger.warning(`Select element not found for field: ${field.name}`);
+            this.logger.warning(`Select element not found for field: ${field.name}`);
             return false;
         }
 
-        logger.processing(`Filling select: ${field.name} with "${value}"`);
+        this.logger.processing(`Filling select: ${field.name} with "${value}"`);
 
         // Focus → type → wait for dropdown → select first matching option
         const input = el as HTMLInputElement;
@@ -68,24 +71,24 @@ export class IndeedAutoFiller {
 
         if (match) {
             (match as HTMLElement).click();
-            logger.success(`Selected option for ${field.name}: "${value}"`);
+            this.logger.success(`Selected option for ${field.name}: "${value}"`);
             return true;
         }
 
-        logger.warning(`No matching option found for ${field.name}: "${value}"`);
+        this.logger.warning(`No matching option found for ${field.name}: "${value}"`);
         return false;
     }
 
     /** High-level autofill for entire form */
     async autofill(fields: FormField[], data: Record<string, any>) {
-        logger.processing("Starting form autofill", { totalFields: fields.length });
+        this.logger.processing("Starting form autofill", { totalFields: fields.length });
         
         let filledCount = 0;
         for (const field of fields) {
             const v = data[field.name || ""];
 
             if (v === undefined) {
-                logger.debug(`Skipping field ${field.name}: no data provided`);
+                this.logger.debug(`Skipping field ${field.name}: no data provided`);
                 continue;
             }
 
@@ -102,6 +105,6 @@ export class IndeedAutoFiller {
             await this.wait(100);
         }
         
-        logger.success(`Autofill completed: ${filledCount}/${fields.length} fields filled`);
+        this.logger.success(`Autofill completed: ${filledCount}/${fields.length} fields filled`);
     }
 }
