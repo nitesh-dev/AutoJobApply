@@ -76,16 +76,6 @@ export class IndeedAutoFiller {
         return false;
     }
 
-    // /** Click button using selector */
-    // clickButton(field: FormField) {
-    //     const el = this.getElement(field.selector);
-    //     console.log("Clicking button:", field.selector, el);
-    //     if (!el) return false;
-
-    //     (el as HTMLElement).click();
-    //     return true;
-    // }
-
     /** High-level autofill for entire form */
     async autofill(fields: FormField[], data: Record<string, any>) {
         logger.processing("Starting form autofill", { totalFields: fields.length });
@@ -114,10 +104,4 @@ export class IndeedAutoFiller {
         
         logger.success(`Autofill completed: ${filledCount}/${fields.length} fields filled`);
     }
-
-    // clickContinue(fields: FormField) {
-    //     // const btn = fields.reverse().find((f) => f.type === "button");
-    //     // if (btn) this.clickButton(btn);
-    //     this.clickButton(fields);
-    // }
 }

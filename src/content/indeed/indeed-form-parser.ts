@@ -1,6 +1,5 @@
 import { getUUID } from "../utils";
 import { FieldType, FormField, ParsedForm } from "./types";
-import { logger } from "../logger";
 
 
 
@@ -13,37 +12,12 @@ export class IndeedDynamicFormParser {
     this.root = el as HTMLElement;
   }
 
-  /** Extract label by id, aria-label, wrapper <label>, or dom walk */
-  private getLabel(el: HTMLElement): string | undefined {
-    const id = el.getAttribute("id");
-    if (id) {
-      const l = this.root.querySelector(`label[for="${id}"]`);
-      if (l) return l.textContent?.trim() || undefined;
-    }
-
-    const aria = el.getAttribute("aria-label");
-    if (aria) return aria;
-
-    const placeholder = el.getAttribute("placeholder");
-    if (placeholder) return placeholder;
-
-    const wrapperLabel = el.closest("label");
-    if (wrapperLabel) return wrapperLabel.textContent?.trim() || undefined;
-
-    const text = el.innerText.trim();
-    if (text) return text;
-
-    return undefined;
-  }
-
   /** Build stable selector for replaying autofill */
   private buildSelector(el: HTMLElement): string | null {
     const tag = el.tagName.toLowerCase();
     const id = el.getAttribute("id");
     const name = el.getAttribute("name");
     const aria = el.getAttribute("aria-label");
-    const text = el.innerText.toLowerCase();
-    logger.debug(`Building selector for element with text: ${text}`);
 
     if (id) return `${tag}#${id}`;
     if (name) return `${tag}[name="${name}"]`;
@@ -143,8 +117,6 @@ export class IndeedDynamicFormParser {
     
     for (const button of buttons) {
       const htmlEl = button as HTMLElement;
-
-      logger.debug(`Checking button with text: ${htmlEl.innerText}`);
       
       // Skip invisible buttons
       if (!this.isVisible(htmlEl)) continue;

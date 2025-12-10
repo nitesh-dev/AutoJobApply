@@ -1,6 +1,6 @@
 .log-viewer {
-  background: #1e1e1e;
-  border: 1px solid #333;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
   overflow: hidden;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -12,15 +12,15 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  background: #252525;
-  border-bottom: 1px solid #333;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .log-viewer-header h3 {
   margin: 0;
   font-size: 14px;
   font-weight: 600;
-  color: #e0e0e0;
+  color: #1f2937;
 }
 
 .log-viewer-controls {
@@ -31,7 +31,7 @@
 
 .log-viewer-button {
   background: transparent;
-  border: 1px solid #444;
+  border: 1px solid #d1d5db;
   border-radius: 4px;
   padding: 4px 8px;
   cursor: pointer;
@@ -40,8 +40,8 @@
 }
 
 .log-viewer-button:hover {
-  background: #333;
-  border-color: #555;
+  background: #f3f4f6;
+  border-color: #9ca3af;
 }
 
 .log-count {
@@ -65,22 +65,22 @@
 }
 
 .log-viewer-content::-webkit-scrollbar-track {
-  background: #1e1e1e;
+  background: #ffffff;
 }
 
 .log-viewer-content::-webkit-scrollbar-thumb {
-  background: #444;
+  background: #d1d5db;
   border-radius: 4px;
 }
 
 .log-viewer-content::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: #9ca3af;
 }
 
 .log-empty {
   padding: 24px;
   text-align: center;
-  color: #888;
+  color: #9ca3af;
   font-size: 14px;
 }
 
@@ -91,12 +91,12 @@
 
 .log-entry {
   padding: 8px 16px;
-  border-bottom: 1px solid #2a2a2a;
+  border-bottom: 1px solid #f3f4f6;
   transition: background-color 0.2s;
 }
 
 .log-entry:hover {
-  background: #252525;
+  background: #f9fafb;
 }
 
 .log-entry:last-child {
@@ -116,7 +116,7 @@
 }
 
 .log-timestamp {
-  color: #888;
+  color: #9ca3af;
   font-size: 11px;
   font-family: 'Courier New', monospace;
   flex-shrink: 0;
@@ -124,12 +124,12 @@
 
 .log-message {
   flex: 1;
-  color: #e0e0e0;
+  color: #1f2937;
   word-break: break-word;
 }
 
 .log-details-toggle {
-  color: #888;
+  color: #9ca3af;
   font-size: 10px;
   flex-shrink: 0;
 }
@@ -137,14 +137,14 @@
 .log-details {
   margin-top: 8px;
   padding: 8px;
-  background: #1a1a1a;
+  background: #f9fafb;
   border-radius: 4px;
-  border-left: 3px solid #444;
+  border-left: 3px solid #d1d5db;
 }
 
 .log-details pre {
   margin: 0;
-  color: #aaa;
+  color: #6b7280;
   font-size: 11px;
   font-family: 'Courier New', monospace;
   white-space: pre-wrap;
@@ -173,19 +173,19 @@
 }
 
 .log-debug .log-entry-main {
-  border-left: 3px solid #6b7280;
+  border-left: 3px solid #9ca3af;
   padding-left: 8px;
 }
 
 .log-error .log-message {
-  color: #ff6b6b;
+  color: #dc2626;
   font-weight: 500;
 }
 
 .log-warning .log-message {
-  color: #ffa94d;
+  color: #d97706;
 }
 
 .log-success .log-message {
-  color: #51cf66;
+  color: #059669;
 }

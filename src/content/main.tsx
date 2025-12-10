@@ -6,8 +6,6 @@ import { IndeedAutoFiller } from "./indeed/indeed-form-filler.ts";
 import { Page } from "./automation/page.ts";
 import { logger } from "./logger";
 
-logger.info("AutoJobApply content script loaded");
-
 const container = document.createElement("div");
 container.id = "crxjs-app";
 document.body.appendChild(container);
@@ -29,8 +27,6 @@ const page = new Page();
 
 // Main function to parse and fill form
 async function processForm() {
-  logger.processing("Processing form...");
-
   try {
     await page.waitForNetworkIdle();
     await page.waitForSelector("#ia-container");
@@ -59,7 +55,6 @@ let lastUrl = location.href;
 setInterval(() => {
   if (location.href !== lastUrl) {
     lastUrl = location.href;
-    logger.info("URL changed", { url: lastUrl });
     handleNavigation();
   }
 }, 500);
