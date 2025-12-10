@@ -4,8 +4,9 @@ import App from "./views/App.tsx";
 import { IndeedDynamicFormParser } from "./indeed/indeed-form-parser.ts";
 import { IndeedAutoFiller } from "./indeed/indeed-form-filler.ts";
 import { Page } from "./automation/page.ts";
+import { logger } from "./logger";
 
-console.log("[CRXJS] Hello world from content script!");
+logger.info("AutoJobApply content script loaded");
 
 const container = document.createElement("div");
 container.id = "crxjs-app";
@@ -28,7 +29,7 @@ const page = new Page();
 
 // Main function to parse and fill form
 async function processForm() {
-  console.log("Processing form...");
+  logger.processing("Processing form...");
 
   try {
     await page.waitForNetworkIdle();
@@ -37,7 +38,7 @@ async function processForm() {
 
     const parser = new IndeedDynamicFormParser();
     const { fields, continueButton } = parser.parse();
-    console.log("Parsed form:", { fields, continueButton });
+    logger.success("Form parsed successfully", { fieldCount: fields.length, hasContinueButton: !!continueButton });
 
     const auto = new IndeedAutoFiller();
     await auto.autofill(fields, AUTOFILL_DATA);
@@ -46,10 +47,10 @@ async function processForm() {
       // auto.clickContinue(continueButton);
       await page.click(continueButton.selector);
     } else {
-      console.warn("No continue button found");
+      logger.warning("No continue button found");
     }
   } catch (error) {
-    console.error("Error processing form:", error);
+    logger.error("Error processing form", error);
   }
 }
 
@@ -58,7 +59,7 @@ let lastUrl = location.href;
 setInterval(() => {
   if (location.href !== lastUrl) {
     lastUrl = location.href;
-    console.log("URL changed:", lastUrl);
+    logger.info("URL changed", { url: lastUrl });
     handleNavigation();
   }
 }, 500);

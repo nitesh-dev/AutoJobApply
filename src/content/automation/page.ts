@@ -1,8 +1,10 @@
+import { logger } from '../logger';
+
 export class Page {
     // ========= WAIT HELPERS ==========
 
     async waitForTimeout(ms: number): Promise<void> {
-        console.log(`[Page] Waiting for ${ms}ms...`);
+        logger.debug(`Waiting for ${ms}ms...`);
         return new Promise((r) => setTimeout(r, ms));
     }
 
@@ -10,18 +12,18 @@ export class Page {
         selector: string,
         timeout: number = 5000
     ): Promise<T> {
-        console.log(`[Page] Waiting for selector: ${selector}`);
+        logger.info(`Waiting for selector: ${selector}`);
         return new Promise((resolve, reject) => {
             const existing = document.querySelector<T>(selector);
             if (existing) {
-                console.log(`[Page] Selector found immediately: ${selector}`);
+                logger.success(`Selector found immediately: ${selector}`);
                 return resolve(existing);
             }
 
             const observer = new MutationObserver(() => {
                 const el = document.querySelector<T>(selector);
                 if (el) {
-                    console.log(`[Page] Selector appeared: ${selector}`);
+                    logger.success(`Selector appeared: ${selector}`);
                     observer.disconnect();
                     resolve(el);
                 }
@@ -34,7 +36,7 @@ export class Page {
 
             setTimeout(() => {
                 observer.disconnect();
-                console.error(`[Page] Timeout waiting for selector: ${selector}`);
+                logger.error(`Timeout waiting for selector: ${selector}`);
                 reject(new Error(`Timeout waiting for selector: ${selector}`));
             }, timeout);
         });
@@ -44,21 +46,21 @@ export class Page {
         selector: string,
         timeout: number = 5000
     ): Promise<T> {
-        console.log(`[Page] Waiting for visible selector: ${selector}`);
+        logger.info(`Waiting for visible selector: ${selector}`);
 
         const start = Date.now();
 
         while (Date.now() - start < timeout) {
             const el = document.querySelector<T>(selector);
             if (el && this.isVisible(el)) {
-                console.log(`[Page] Visible selector found: ${selector}`);
+                logger.success(`Visible selector found: ${selector}`);
                 return el;
             }
 
             await this.waitForTimeout(100);
         }
 
-        console.error(`[Page] Timeout waiting for visible selector: ${selector}`);
+        logger.error(`Timeout waiting for visible selector: ${selector}`);
         throw new Error(`Timeout waiting for visible selector: ${selector}`);
     }
 
@@ -78,7 +80,7 @@ export class Page {
         idleTime: number = 1000,
         timeout: number = 5000
     ): Promise<void> {
-        console.log(`[Page] Waiting for network idle (${idleTime}ms)...`);
+        logger.info(`Waiting for network idle (${idleTime}ms)...`);
         return new Promise((resolve, reject) => {
             let active = 0;
             let lastChange = Date.now();
@@ -118,13 +120,13 @@ export class Page {
                 const now = Date.now();
 
                 if (active === 0 && now - lastChange >= idleTime) {
-                    console.log(`[Page] Network is idle`);
+                    logger.success(`Network is idle`);
                     cleanup();
                     return resolve();
                 }
 
                 if (now - start >= timeout) {
-                    console.error(`[Page] Timeout waiting for network idle (${active} active requests)`);
+                    logger.error(`Timeout waiting for network idle (${active} active requests)`);
                     cleanup();
                     return reject(new Error("Timeout waiting for network idle"));
                 }
@@ -142,14 +144,14 @@ export class Page {
     // ========= INTERACTION API ==========
 
     async click(selector: string): Promise<void> {
-        console.log(`[Page] Clicking: ${selector}`);
+        logger.processing(`Clicking: ${selector}`);
         const el = await this.waitForSelectorVisible<HTMLElement>(selector);
         el.click();
         await this.waitForTimeout(50);
     }
 
     async type(selector: string, text: string): Promise<void> {
-        console.log(`[Page] Typing into: ${selector}`);
+        logger.processing(`Typing into: ${selector}`);
         const el = await this.waitForSelectorVisible<HTMLInputElement>(selector);
         el.focus();
         el.value = "";
@@ -158,11 +160,11 @@ export class Page {
             el.dispatchEvent(new Event("input", { bubbles: true }));
             await this.waitForTimeout(10);
         }
-        console.log(`[Page] Typed: "${text}"`);
+        logger.success(`Typed: "${text}"`);
     }
 
     async select(selector: string, value: string): Promise<void> {
-        console.log(`[Page] Selecting value "${value}" in: ${selector}`);
+        logger.processing(`Selecting value "${value}" in: ${selector}`);
         const el = await this.waitForSelectorVisible<HTMLSelectElement>(selector);
         el.value = value;
         el.dispatchEvent(new Event("change", { bubbles: true }));
@@ -170,7 +172,7 @@ export class Page {
     }
 
     async uploadFile(selector: string, file: File): Promise<void> {
-        console.log(`[Page] Uploading file "${file.name}" to: ${selector}`);
+        logger.processing(`Uploading file "${file.name}" to: ${selector}`);
 
         const input = await this.waitForSelectorVisible<HTMLInputElement>(selector);
 
@@ -181,19 +183,19 @@ export class Page {
         input.dispatchEvent(new Event("change", { bubbles: true }));
 
         await this.waitForTimeout(200);
-        console.log(`[Page] File uploaded successfully`);
+        logger.success(`File uploaded successfully`);
     }
 
     // ========= NAVIGATION WAIT ==========
 
     async waitForNavigation(timeout: number = 5000): Promise<void> {
-        console.log(`[Page] Waiting for navigation...`);
+        logger.info(`Waiting for navigation...`);
         return new Promise((resolve, reject) => {
             const startUrl = location.href;
 
             const check = () => {
                 if (location.href !== startUrl) {
-                    console.log(`[Page] Navigation detected: ${startUrl} -> ${location.href}`);
+                    logger.success(`Navigation detected: ${startUrl} -> ${location.href}`);
                     resolve();
                 }
             };
@@ -202,7 +204,7 @@ export class Page {
             window.addEventListener("pushState", check as any);
 
             setTimeout(() => {
-                console.error(`[Page] Timeout waiting for navigation`);
+                logger.error(`Timeout waiting for navigation`);
                 reject(new Error("Timeout waiting for navigation"));
             }, timeout);
         });

@@ -1,5 +1,6 @@
 import { getUUID } from "../utils";
 import { FieldType, FormField, ParsedForm } from "./types";
+import { logger } from "../logger";
 
 
 
@@ -42,7 +43,7 @@ export class IndeedDynamicFormParser {
     const name = el.getAttribute("name");
     const aria = el.getAttribute("aria-label");
     const text = el.innerText.toLowerCase();
-    console.log(text)
+    logger.debug(`Building selector for element with text: ${text}`);
 
     if (id) return `${tag}#${id}`;
     if (name) return `${tag}[name="${name}"]`;
@@ -143,7 +144,7 @@ export class IndeedDynamicFormParser {
     for (const button of buttons) {
       const htmlEl = button as HTMLElement;
 
-      console.log(htmlEl.innerText)
+      logger.debug(`Checking button with text: ${htmlEl.innerText}`);
       
       // Skip invisible buttons
       if (!this.isVisible(htmlEl)) continue;
