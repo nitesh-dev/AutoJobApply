@@ -10,6 +10,8 @@ export class Page {
         selector: string,
         timeout: number = 5000
     ): Promise<T> {
+
+        
         return new Promise((resolve, reject) => {
             const existing = document.querySelector<T>(selector);
             if (existing) {

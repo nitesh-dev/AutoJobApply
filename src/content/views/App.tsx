@@ -5,7 +5,7 @@ import { LogViewer } from '../components/LogViewer'
 import { logStore } from '../logger/store'
 
 function App() {
-  const [show, setShow] = useState(false)
+  const [show, setShow] = useState(true)
   const [logCount, setLogCount] = useState(0)
   const toggle = () => {
     setShow(!show)
@@ -22,7 +22,7 @@ function App() {
     <div className="popup-container">
       {show && (
         <div className={`popup-content ${show ? 'opacity-100' : 'opacity-0'}`}>
-          <LogViewer maxHeight="300px" />
+          <LogViewer maxHeight="60vh" />
           {/* <div style={{ marginTop: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <button onClick={() => logger.error('Error message example')}>Log Error</button>
           </div> */}

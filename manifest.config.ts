@@ -16,6 +16,7 @@ export default defineManifest({
   permissions: [
     'sidePanel',
     'contentSettings',
+    "tabs",
   ],
   content_scripts: [{
     js: ['src/content/main.tsx'],
@@ -24,5 +25,9 @@ export default defineManifest({
   }],
   side_panel: {
     default_path: 'src/sidepanel/index.html',
+  },
+  background: {
+    service_worker: 'src/background/index.ts',
+    type: 'module',
   },
 })

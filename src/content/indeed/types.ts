@@ -18,3 +18,13 @@ export interface ParsedForm {
     fields: FormField[];
     continueButton?: FormField;
 }
+
+
+
+
+export interface Jobs{
+    title: string;
+    jobUrl: string;
+    element: HTMLLIElement;
+
+}
