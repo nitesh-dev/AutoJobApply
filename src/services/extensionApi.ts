@@ -1,5 +1,5 @@
 // services/extensionApi.ts
-import { ChromeApiResponse, GetAllTabRes } from "@/background/type";
+import { ChromeApiResponse} from "@/background/type";
 import browser from "webextension-polyfill";
 
 type RequestMessage = {

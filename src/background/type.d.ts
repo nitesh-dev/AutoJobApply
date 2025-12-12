@@ -3,9 +3,3 @@ export type ChromeApiResponse<T> = {
     data?: T;
     error?: string;
 }
-
-
-export interface GetAllTabRes {
-    id: number; 
-    url: string | undefined
-}
