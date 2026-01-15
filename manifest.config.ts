@@ -17,6 +17,7 @@ export default defineManifest({
     'sidePanel',
     'contentSettings',
     "tabs",
+    "storage",
   ],
   content_scripts: [{
     js: ['src/content/main.tsx'],

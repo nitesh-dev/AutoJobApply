@@ -13,16 +13,19 @@ export class IndeedDynamicFormParser {
   }
 
   /** Build stable selector for replaying autofill */
+  /** Build stable selector for replaying autofill */
   private buildSelector(el: HTMLElement): string | null {
     const tag = el.tagName.toLowerCase();
     const id = el.getAttribute("id");
     const name = el.getAttribute("name");
     const aria = el.getAttribute("aria-label");
 
-    if (id) return `${tag}#${id}`;
+    // Helper to escape special CSS characters
+    const escapeCss = (s: string) => s.replace(/([:.#])/g, "\\$1");
+
+    if (id) return `${tag}#${escapeCss(id)}`;
     if (name) return `${tag}[name="${name}"]`;
     if (aria) return `${tag}[aria-label="${aria}"]`;
-
 
     if (tag === "button") {
       // Skip invisible buttons
@@ -49,13 +52,15 @@ export class IndeedDynamicFormParser {
       // Fallback: use class
       const cls = el.getAttribute("class");
       if (cls) {
-        const classSelector = cls.split(" ").map(c => `.${c}`).join("");
+        const classSelector = cls
+          .split(" ")
+          .map(c => `.${escapeCss(c)}`)
+          .join("");
         return `button${classSelector}`;
       }
 
       return "button";
     }
-
 
     return null;
   }
@@ -114,13 +119,13 @@ export class IndeedDynamicFormParser {
   /** Parse and find the continue button */
   private parseContinueButton(): FormField | undefined {
     const buttons = this.root.querySelectorAll("button");
-    
+
     for (const button of buttons) {
       const htmlEl = button as HTMLElement;
-      
+
       // Skip invisible buttons
       if (!this.isVisible(htmlEl)) continue;
-      
+
       // Check if this is a continue button
       const text = htmlEl.innerText.toLowerCase();
       const keywords = [
@@ -132,13 +137,13 @@ export class IndeedDynamicFormParser {
         "next",
         "apply",
       ];
-      
+
       if (!text || !keywords.some(k => text.includes(k))) continue;
-      
+
       // Generate unique ID and apply to element if it doesn't have one
       const uuid = getUUID();
       const existingId = htmlEl.getAttribute("id");
-      
+
       let finalSelector: string;
       if (!existingId) {
         htmlEl.setAttribute("id", uuid);
@@ -148,22 +153,22 @@ export class IndeedDynamicFormParser {
         if (!selector) continue;
         finalSelector = selector;
       }
-      
+
       return {
-        name: uuid,
+        // name: uuid,
         selector: finalSelector,
         type: "button",
         value: undefined,
       };
     }
-    
+
     return undefined;
   }
 
   /** Extract options from a select element */
   private extractSelectOptions(el: HTMLElement): { label: string; value: string }[] {
     const options: { label: string; value: string }[] = [];
-    
+
     if (el.tagName.toLowerCase() === "select") {
       const selectEl = el as HTMLSelectElement;
       for (const option of selectEl.options) {
@@ -173,7 +178,7 @@ export class IndeedDynamicFormParser {
         });
       }
     }
-    
+
     return options;
   }
 
@@ -193,7 +198,7 @@ export class IndeedDynamicFormParser {
       // Generate unique ID and apply to element if it doesn't have one
       const uuid = getUUID();
       const existingId = htmlEl.getAttribute("id");
-      
+
       let finalSelector: string;
       if (!existingId) {
         // Apply the UUID as the id attribute
@@ -210,7 +215,7 @@ export class IndeedDynamicFormParser {
       const value = this.extractValue(htmlEl, type);
 
       const field: FormField = {
-        name: uuid,
+        // name: uuid,
         selector: finalSelector,
         type,
         value,
