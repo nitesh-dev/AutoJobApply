@@ -123,7 +123,7 @@ export class BackgroundManager {
         // The new tab will load, recognize itself as ANALYZER, and send REGISTER_TAB
     }
 
-    async handleProxyPrompt(payload: { prompt: string }) {
+    async handleProxyPrompt(payload: { prompt: string }, senderTabId?: number) {
         if (!this.gptTabId) {
             console.error('[Manager] No GPT tab registered!');
             throw new Error('GPT tab not found');
@@ -142,6 +142,10 @@ export class BackgroundManager {
 
         console.log('[Manager] GPT Response:', { response });
 
+        if (senderTabId && this.tabs[senderTabId]) {
+            await browser.tabs.update(senderTabId, { active: true });
+        }
+
         return response;
     }
 
@@ -154,6 +158,11 @@ export class BackgroundManager {
 
         if (['applying', 'completed', 'skipped', 'failed'].includes(status)) {
             this.finishCurrentJob(status as any);
+
+            // // close the tab
+            // if (tabId && this.tabs[tabId]) {
+            //     browser.tabs.remove(tabId);
+            // }
         }
     }
 
@@ -179,9 +188,6 @@ export class BackgroundManager {
 
             this.currentJob = null;
             await this.saveState();
-
-            // Close the tab?
-            // await browser.tabs.remove(tabId);
 
             this.processNextJob();
         }

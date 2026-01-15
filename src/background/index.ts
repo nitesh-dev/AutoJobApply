@@ -27,7 +27,7 @@ browser.runtime.onMessage.addListener((msg: unknown, sender: browser.Runtime.Mes
                     data = await manager.handleJobListFound(message.payload as any);
                     break;
                 case 'PROXY_PROMPT_GPT':
-                    data = await manager.handleProxyPrompt(message.payload as any);
+                    data = await manager.handleProxyPrompt(message.payload as any, tabId);
                     break;
                 case 'REPORT_JOB_STATUS':
                     data = manager.reportJobStatus((message.payload as any).status);

@@ -3,6 +3,7 @@ import App from "@/content/views/App";
 import { api } from "@/services/extensionApi";
 import { Page } from "./automation/page";
 import { IndeedFinder } from "./indeed/finder";
+import { IndeedFinder2 } from "./indeed/_finder";
 import { IndeedAnalyzer } from "./indeed/analyzer";
 import { IndeedForm } from "./indeed/form";
 import { GPTExecutor } from "./gpt/executor";
@@ -74,7 +75,7 @@ async function init() {
   browser.runtime.onMessage.addListener((message: any) => {
     logger.info("Content received message:", message);
     if (handler) {
-      handler.handleMessage(message as ExtensionMessage);
+      return handler.handleMessage(message as ExtensionMessage);
     }
   });
 

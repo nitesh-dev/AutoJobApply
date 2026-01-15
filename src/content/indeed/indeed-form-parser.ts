@@ -116,9 +116,32 @@ export class IndeedDynamicFormParser {
     return (el as HTMLInputElement).value || "";
   }
 
+
+  private extractLabel(el: HTMLElement): string | undefined {
+    // Try aria-label
+    const ariaLabel = el.getAttribute("aria-label");
+    if (ariaLabel) return ariaLabel;
+
+    // Try associated label element
+    const id = el.getAttribute("id");
+    if (id) {
+      const labelEl = this.root.querySelector(`label[for="${id}"]`);
+      if (labelEl) return labelEl.textContent?.trim();
+    }
+
+    // Try parent label
+    if (el.parentElement && el.parentElement.tagName.toLowerCase() === "label") {
+      return el.parentElement.textContent?.trim();
+    }
+
+    return undefined;
+  }
+
   /** Parse and find the continue button */
   private parseContinueButton(): FormField | undefined {
     const buttons = this.root.querySelectorAll("button");
+
+    console.log({buttons})
 
     for (const button of buttons) {
       const htmlEl = button as HTMLElement;
@@ -213,9 +236,12 @@ export class IndeedDynamicFormParser {
 
       const type = this.detectType(htmlEl);
       const value = this.extractValue(htmlEl, type);
+      const label = this.extractLabel(htmlEl);
+
 
       const field: FormField = {
         // name: uuid,
+        label,
         selector: finalSelector,
         type,
         value,

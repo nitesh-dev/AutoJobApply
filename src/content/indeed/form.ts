@@ -33,6 +33,17 @@ export class IndeedForm extends BaseExecutor {
             await this.page.waitForNetworkIdle();
             await this.page.waitForSelector("#ia-container");
 
+            if(this.url.includes("form/review-module")) {
+                await this.page.waitForSelector('button[data-testid="submit-application-button"]')
+            }
+
+            if(this.url.includes("form/post-apply")){
+                // form submitted successfully
+                this.logger.success("Application form submitted successfully!");
+                await api.reportJobStatus('completed');
+                return;
+            }
+
             const parser = new IndeedDynamicFormParser();
             const { fields, continueButton } = parser.parse();
             this.logger.success("Form parsed successfully", { fields, continueButton });
@@ -40,6 +51,9 @@ export class IndeedForm extends BaseExecutor {
             // don't process gpt in url include excludeForm
             if (this.excludeForm.some((form) => this.url.includes(form))) {
                 this.logger.info("Form is in exclude list. Skipping GPT processing.");
+            } else if (!fields.length) {
+                this.logger.info("No fields found to fill.");
+
             } else {
                 const prompt = `
                 I am applying for a job. Here are the form fields I need to fill:

@@ -50,3 +50,23 @@ npm run build
 - The CRXJS plugin automatically handles manifest generation
 - Content scripts should be placed in `src/content/`
 - Popup UI should be placed in `src/popup/`
+
+
+
+
+
+### BUGS
+ failed during checkbox selection
+ ![alt text](image.png) ![alt text](image-1.png)
+
+
+ gpt give some time incomplete reponse
+ ![alt text](image-2.png)
+
+
+ add label for form fill up
+ ![alt text](image-3.png) ![alt text](image-4.png)
+
+
+ checkbox choosing not working 
+ ![alt text](image-5.png)

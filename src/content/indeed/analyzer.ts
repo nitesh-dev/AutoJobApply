@@ -2,6 +2,7 @@ import { Page } from "../automation/page";
 import { api } from "@/services/extensionApi";
 import { BaseExecutor } from "../common/BaseExecutor";
 import { ExtensionMessage } from "@/types";
+import { delay } from "../utils";
 
 export class IndeedAnalyzer extends BaseExecutor {
     private jobDescriptionSelector = "#jobDescriptionText";
@@ -12,7 +13,7 @@ export class IndeedAnalyzer extends BaseExecutor {
 
     init() {
         // Wait for page to be ready, then extract
-        setTimeout(() => this.analyze(), 3000);
+        this.analyze();
     }
 
     handleMessage(_message: ExtensionMessage) {
@@ -20,10 +21,19 @@ export class IndeedAnalyzer extends BaseExecutor {
     }
 
     async analyze() {
+        await delay(3000);
         this.logger.info("Analyzing job details...");
         try {
             await api.reportJobStatus('analyzing');
             const el = await this.page.waitForSelector(this.jobDescriptionSelector);
+
+            const applyBtn = await this.page.waitForSelector("#jobsearch-ViewJobButtons-container>div button")
+            if (applyBtn.innerHTML.includes("Applied")) {
+                this.logger.info("Already applied to this job. Skipping.");
+                await api.reportJobStatus('skipped');
+                close()
+                return;
+            }
             const description = (el as HTMLElement).innerText;
 
             const prompt = `
@@ -49,17 +59,30 @@ export class IndeedAnalyzer extends BaseExecutor {
                 this.logger.warning("Decided NOT to apply. Skipping.");
                 await api.reportJobStatus('skipped');
                 // window.close();
+
             }
 
         } catch (e) {
             this.logger.error("Failed to analyze job", e);
             await api.reportJobStatus('failed');
         }
+
+        // close()
     }
 
     async apply() {
         this.logger.success("Applying for job...");
         try {
+            await this.page.waitForSelector("#jobsearch-ViewJobButtons-container");
+            const applyBtn = document.querySelector('#jobsearch-ViewJobButtons-container>div button') as HTMLButtonElement | null;
+            console.log({ applyBtn })
+            for (let v = 0; v < 2; v++) {
+                // Loop body (currently empty)
+                applyBtn?.click()
+                await delay(1000);
+                console.log(`Clicked apply button attempt ${v + 1}`);
+            }
+
             const btn = document.querySelector("#indeedApplyButton") as HTMLElement;
             if (btn) {
                 btn.click();
