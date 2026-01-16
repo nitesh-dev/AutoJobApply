@@ -29,12 +29,14 @@ export class IndeedForm extends BaseExecutor {
 
     async processForm() {
         try {
+
+            let resume = await (await api.getConfig()).resumeText;
             this.logger.info("Processing Indeed application form...");
             await this.page.waitForNetworkIdle();
             await this.page.waitForSelector("#ia-container");
 
             if(this.url.includes("form/review-module")) {
-                await this.page.waitForSelector('button[data-testid="submit-application-button"]')
+                await this.page.waitForSelector('button[data-testid="submit-application-button"]', 10000)
             }
 
             if(this.url.includes("form/post-apply")){
@@ -60,15 +62,7 @@ export class IndeedForm extends BaseExecutor {
                 ${JSON.stringify(fields, null, 2)}
 
                 My details:
-                Name: Jarvis
-                Email: jarvis@example.com
-                Phone: +91 9999999999
-                City: Patna, Bihar
-                Postal Code: 844114
-                Address: Sector 5, AIIMS
-                Current Company: Google DeepMind
-                LinkedIn: linkedin.com/in/jarvis
-                Portfolio: jarvis.dev
+                ${resume}
 
                 Please generate a JSON object where keys match the selector of the fields and values are the answers.
                 Return strictly JSON in code block.
@@ -81,7 +75,7 @@ export class IndeedForm extends BaseExecutor {
 
                 if (answer) {
                     const data = JSON.parse(answer.replace(/```json/g, '').replace(/```/g, '').trim());
-                    const auto = new IndeedAutoFiller();
+                    const auto = new IndeedAutoFiller(this.page);
                     await auto.autofill(fields, data);
                 }
             }
@@ -89,6 +83,15 @@ export class IndeedForm extends BaseExecutor {
             if (continueButton) {
                 this.logger.info("Autofill done. Clicking continue/submit...");
                 await this.page.click(continueButton.selector);
+
+
+
+                if(this.url.includes("form/review-module")) {
+                    this.logger.success("Application form submitted successfully!");
+                    await api.reportJobStatus('completed');
+                    close();
+                }
+
 
                 // If it's the final review page or similar, we might want to report 'completed'
                 // For now, let's just keep reporting progress.

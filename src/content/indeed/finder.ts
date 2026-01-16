@@ -18,7 +18,7 @@ export class IndeedFinder extends BaseExecutor {
     handleMessage(message: ExtensionMessage) {
         if (message.type === 'PROCESS_NEXT_JOB') {
             // ... logic for next job
-            alert("Processing next job");
+            // alert("Processing next job");
         }
     }
 

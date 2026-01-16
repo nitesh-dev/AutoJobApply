@@ -21,14 +21,11 @@ function App() {
   return (
     <div className="popup-container">
       {show && (
-        <div className={`popup-content ${show ? 'opacity-100' : 'opacity-0'}`}>
+        <div className={`popup-content card ${show ? 'opacity-100' : 'opacity-0'}`} style={{ padding: '0.25rem' }}>
           <LogViewer maxHeight="60vh" />
-          {/* <div style={{ marginTop: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            <button onClick={() => logger.error('Error message example')}>Log Error</button>
-          </div> */}
         </div>
       )}
-      <button className="toggle-button" onClick={toggle}>
+      <button className="btn toggle-button" onClick={toggle}>
         <img src={Logo} alt="CRXJS logo" className="button-icon" />
         {logCount > 0 && <span className="log-badge">{logCount}</span>}
       </button>

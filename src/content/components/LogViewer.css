@@ -126,6 +126,7 @@
   flex: 1;
   color: #1f2937;
   word-break: break-word;
+  max-width: 400px;
 }
 
 .log-details-toggle {

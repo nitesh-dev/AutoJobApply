@@ -1,25 +1,15 @@
-.dashboard {
-  padding: 0.75rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  min-width: 250px;
-  background-color: #0f172a;
-  min-height: 100vh;
-  color: #f1f5f9;
-}
-
 .header {
+  margin-top: 4px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding-bottom: 0.5rem;
+  padding-bottom: 0.3rem;
 }
 
 .header h2 {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 700;
   background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
   -webkit-background-clip: text;
@@ -27,65 +17,45 @@
   -webkit-text-fill-color: transparent;
 }
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
+.stat-card-flex {
+  grid-column: span 6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .stat-card {
-  background: rgba(30, 41, 59, 0.5);
-  border-radius: 8px;
-  padding: 0.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  grid-column: span 2;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.1rem;
+  padding: 0.5rem !important;
 }
 
 .stat-card .label {
   font-size: 0.65rem;
-  color: #94a3b8;
+  color: var(--text-secondary);
   text-transform: uppercase;
   font-weight: 600;
 }
 
 .stat-card .value {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 700;
-  color: #f8fafc;
+  color: var(--text-primary);
 }
 
-.stat-card.primary {
-  grid-column: span 3;
-  padding: 0.75rem;
-  background: linear-gradient(135deg, rgba(37, 99, 235, 0.2) 0%, rgba(124, 58, 237, 0.2) 100%);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  flex-direction: row;
-  justify-content: space-between;
-}
-
-.section-title {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #3b82f6;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin: 0.5rem 0 0.25rem 0;
-}
-
-.current-job {
-  background: rgba(30, 41, 59, 0.8);
-  border-radius: 8px;
-  padding: 0.75rem;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.4rem;
 }
 
 .job-info {
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
+  gap: 0.05rem;
 }
 
 .job-title {
@@ -106,7 +76,7 @@
 .tabs-list {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.3rem;
 }
 
 .tab-item {
@@ -114,10 +84,17 @@
   justify-content: space-between;
   align-items: center;
   background: rgba(255, 255, 255, 0.03);
-  padding: 0.4rem 0.6rem;
+  padding: 0.3rem 0.5rem;
   border-radius: 6px;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.tab-item-grid {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0.6rem !important;
 }
 
 .tab-role {
@@ -127,42 +104,21 @@
 
 .tab-id {
   color: #64748b;
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-family: monospace;
 }
 
 .tab-platform {
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   background: rgba(59, 130, 246, 0.1);
   color: #60a5fa;
-  padding: 1px 4px;
+  padding: 2px 6px;
   border-radius: 4px;
   text-transform: uppercase;
 }
 
-.refresh-btn {
-  background: transparent;
-  border: none;
-  color: #64748b;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  display: flex;
-}
-
-.refresh-btn:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: #f1f5f9;
-}
-
 .footer-stats {
-  display: flex;
-  justify-content: space-between;
-  margin-top: auto;
-  padding-top: 0.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  font-size: 0.7rem;
-  color: #64748b;
+  display: none;
 }
 
 .badge {
@@ -172,22 +128,126 @@
   font-weight: 700;
 }
 
-.badge-gpt {
-  background: #10b981;
-  color: white;
+.badge-gpt { background: var(--success); color: white; }
+.badge-finder { background: var(--primary); color: white; }
+.badge-analyzer { background: var(--warning); color: white; }
+.badge-form { background: #8b5cf6; color: white; }
+
+.settings-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  animation: fadeIn 0.2s ease-out;
+  padding-bottom: 0.75rem;
 }
 
-.badge-finder {
-  background: #3b82f6;
-  color: white;
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.badge-analyzer {
-  background: #f59e0b;
-  color: white;
+.platforms-row {
+  display: flex;
+  gap: 1.2rem;
+  padding: 0.15rem 0.3rem;
 }
 
-.badge-form {
-  background: #8b5cf6;
+.platform-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  user-select: none;
+  color: #cbd5e1;
+}
+
+.platform-checkbox input {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  accent-color: #3b82f6;
+}
+
+.section-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0.15rem;
+}
+
+.add-btn {
+  background: rgba(59, 130, 246, 0.1);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.add-btn:hover {
+  background: rgba(59, 130, 246, 0.2);
+  color: #fff;
+}
+
+.queries-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.automation-control {
+  margin: 0.25rem 0;
+  display: flex;
+  justify-content: center;
+}
+
+.start-btn {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: none;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: white;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.start-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+}
+
+.start-btn.running {
+  background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+  box-shadow: 0 4px 12px rgba(225, 29, 72, 0.3);
+}
+
+.start-btn.running:hover {
+  box-shadow: 0 6px 16px rgba(225, 29, 72, 0.4);
+}
+
+.query-item {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  animation: slideIn 0.2s ease-out;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-5px); }
+  to { opacity: 1; transform: translateX(0); }
 }

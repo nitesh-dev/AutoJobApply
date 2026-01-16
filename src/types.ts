@@ -1,5 +1,37 @@
 export type Role = 'GPT' | 'FINDER' | 'ANALYZER' | 'FORM_FILLER';
 
+export interface Job {
+    id: string;
+    title: string;
+    url: string;
+    status: 'pending' | 'analyzing' | 'applying' | 'completed' | 'skipped' | 'failed';
+}
+
+export interface Stats {
+    totalFound: number;
+    analyzed: number;
+    skipped: number;
+    applying: number;
+    completed: number;
+    queueSize: number;
+    pending: number;
+    isRunning: boolean;
+    currentJob: Job | null;
+    tabs: Record<string, { role: Role; platform?: string }>;
+}
+
+export interface UserConfig {
+    resumeText: string;
+    query: {
+        search: string;
+        location: string;
+    }[];
+    platform: {
+        indeed: boolean;
+        linkedin: boolean;
+    };
+}
+
 export interface RegisterTabPayload {
     role: Role;
     platform?: 'INDEED' | 'LINKEDIN';
@@ -14,6 +46,11 @@ export type MessageMap = {
     'REPORT_JOB_STATUS': { status: 'analyzing' | 'applying' | 'completed' | 'skipped' | 'failed' };
     'PROCESS_NEXT_JOB': void;
     'GET_STATS': void;
+    'GET_CONFIG': void;
+    'UPDATE_CONFIG': Partial<UserConfig>;
+    'START_AUTOMATION': void;
+    'STOP_AUTOMATION': void;
+    'CLEAR_CACHE': void;
 };
 
 export type MessageType = keyof MessageMap;

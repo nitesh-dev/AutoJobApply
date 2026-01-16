@@ -1,17 +1,19 @@
-import { RegisterTabPayload, Role } from "../types";
+import { Job, RegisterTabPayload, Role, Stats, UserConfig } from "../types";
 import browser from "webextension-polyfill";
-
-interface Job {
-    id: string;
-    title: string;
-    url: string;
-    status: 'pending' | 'analyzing' | 'applying' | 'completed' | 'skipped';
-}
 
 export class BackgroundManager {
     private tabs: Record<number, { role: Role; platform?: string }> = {};
     private jobQueue: Job[] = [];
     private currentJob: Job | null = null;
+    private isRunning = false;
+    private config: UserConfig = {
+        resumeText: "",
+        query: [],
+        platform: {
+            indeed: true,
+            linkedin: false
+        }
+    };
 
     // Track special tabs
     private gptTabId: number | null = null;
@@ -25,33 +27,87 @@ export class BackgroundManager {
         completed: 0
     };
 
-    getStats() {
+    getStats(): Stats {
         return {
             ...this.stats,
             queueSize: this.jobQueue.length,
             pending: this.jobQueue.filter(j => j.status === 'pending').length,
             currentJob: this.currentJob,
-            tabs: this.tabs
+            tabs: this.tabs as any,
+            isRunning: this.isRunning
         };
     }
 
+    async startAutomation() {
+        this.isRunning = true;
+        console.log("[Manager] Automation started");
 
-    private async loadState() {
-        // const data = await browser.storage.local.get(['jobQueue', 'currentJob']);
-        // if (data.jobQueue) this.jobQueue = data.jobQueue as Job[];
-        // if (data.currentJob) this.currentJob = data.currentJob as Job;
+        for (const tabId of Object.keys(this.tabs)) {
+            await browser.tabs.remove(Number(tabId));
+        }
+
+        // open tabs based on config
+        await browser.tabs.create({ url: 'https://chatgpt.com/?temporary-chat=true&bot=true' });
+        for (const q of this.config.query) {
+
+            if (this.config.platform.indeed && q.search.trim() !== '') {
+                const indeedUrl = `https://www.indeed.com/jobs?q=${encodeURIComponent(q.search)}&l=${encodeURIComponent(q.location)}&fromage=1&from=searchOnDesktopSerp`;
+                await browser.tabs.create({ url: indeedUrl });
+            }
+        }
     }
 
+    async stopAutomation() {
+        this.isRunning = false;
+        console.log("[Manager] Automation stopped");
+        // Optionally, close all tabs related to the automation
+        for (const tabId of Object.keys(this.tabs)) {
+            await browser.tabs.remove(Number(tabId));
+        }
+    }
+
+    getConfig() {
+        return this.config;
+    }
+
+    async updateConfig(newConfig: Partial<UserConfig>) {
+        this.config = { ...this.config, ...newConfig };
+        await this.saveState();
+        return this.config;
+    }
+
+    async clearCache() {
+        console.log("[Manager] Clearing cache (queue and stats)");
+        this.jobQueue = [];
+        this.currentJob = null;
+        this.stats = {
+            totalFound: 0,
+            analyzed: 0,
+            skipped: 0,
+            applying: 0,
+            completed: 0
+        };
+        await this.saveState();
+        return true;
+    }
+
+    private async loadState() {
+        const data = await browser.storage.local.get(['jobQueue', 'currentJob', 'config']);
+        // if (data.jobQueue) this.jobQueue = data.jobQueue as Job[];
+        // if (data.currentJob) this.currentJob = data.currentJob as Job;
+        if (data.config) this.config = data.config as UserConfig;
+    }
 
     constructor() {
         this.loadState();
     }
 
     private async saveState() {
-        // await browser.storage.local.set({
-        //     jobQueue: this.jobQueue,
-        //     currentJob: this.currentJob
-        // });
+        await browser.storage.local.set({
+            // jobQueue: this.jobQueue,
+            // currentJob: this.currentJob,
+            config: this.config
+        });
     }
 
     registerTab(tabId: number, payload: RegisterTabPayload) {

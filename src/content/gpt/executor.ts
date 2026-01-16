@@ -12,9 +12,12 @@ export class GPTExecutor extends BaseExecutor {
     // We want the last assistant response. attempting to get code block first as it's cleaner for JSON.
     private readonly selectorLastAssistantCodeBlock = "article[data-turn='assistant']:last-of-type pre:last-of-type code";
     private readonly selectorLastAssistantText = "article[data-turn='assistant']:last-of-type";
+    private executionQueue: Promise<void> = Promise.resolve();
 
     init() {
         this.logger.info("GPT Executor initialized...");
+        this.logger.info("GPT Executor initialized... GPT Executor initialized... GPT Executor initialized...GPT Executor initialized... GPT Executor initialized... GPT Executor initialized... GPT Executor initialized... GPT Executor initialized...");
+
 
         // Let background know we are ready
         setTimeout(() => {
@@ -25,7 +28,21 @@ export class GPTExecutor extends BaseExecutor {
     async handleMessage(msg: ExtensionMessage) {
         if (msg.type === 'PROMPT_GPT') {
             const payload = msg.payload as { prompt: string };
-            return await this.executePrompt(payload.prompt);
+            this.logger.info("Adding GPT Prompt request to queue...");
+
+            // Chain the prompt execution to the existing queue
+            const responsePromise = this.executionQueue.then(async () => {
+                this.logger.info("Starting queued GPT Prompt execution...");
+                return await this.executePrompt(payload.prompt);
+            });
+
+            // Update the queue to wait for this specific execution to finish (resolve or reject)
+            this.executionQueue = responsePromise.then(() => { }).catch(() => { });
+
+            // Return the result of this specific execution to the caller
+            const result = await responsePromise;
+            this.logger.info("Queued GPT Prompt execution finished.");
+            return result;
         }
     }
 

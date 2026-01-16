@@ -15,6 +15,10 @@ browser.runtime.onMessage.addListener((msg: unknown, sender: browser.Runtime.Mes
         return Promise.resolve({ success: true, data: manager.getStats() });
     }
 
+    if (message.type === 'GET_CONFIG') {
+        return Promise.resolve({ success: true, data: manager.getConfig() });
+    }
+
     // Handle other messages
     return (async () => {
         try {
@@ -31,6 +35,18 @@ browser.runtime.onMessage.addListener((msg: unknown, sender: browser.Runtime.Mes
                     break;
                 case 'REPORT_JOB_STATUS':
                     data = manager.reportJobStatus((message.payload as any).status);
+                    break;
+                case 'UPDATE_CONFIG':
+                    data = await manager.updateConfig(message.payload as any);
+                    break;
+                case 'START_AUTOMATION':
+                    data = await manager.startAutomation();
+                    break;
+                case 'STOP_AUTOMATION':
+                    data = await manager.stopAutomation();
+                    break;
+                case 'CLEAR_CACHE':
+                    data = await manager.clearCache();
                     break;
                 default:
                     return { success: false, error: 'Unknown message type' };

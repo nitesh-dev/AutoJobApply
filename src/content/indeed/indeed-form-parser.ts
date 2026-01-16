@@ -118,21 +118,27 @@ export class IndeedDynamicFormParser {
 
 
   private extractLabel(el: HTMLElement): string | undefined {
-    // Try aria-label
-    const ariaLabel = el.getAttribute("aria-label");
-    if (ariaLabel) return ariaLabel;
+
+    // merge placeholder too
+    // // Try aria-label
+    // const ariaLabel = el.getAttribute("aria-label");
+    // if (ariaLabel) return ariaLabel;
 
     // Try associated label element
     const id = el.getAttribute("id");
     if (id) {
       const labelEl = this.root.querySelector(`label[for="${id}"]`);
+      const placeholder = el.getAttribute("placeholder");
+      if (labelEl && placeholder) {
+        return `${labelEl.textContent?.trim()} - ${placeholder}`;
+      }
       if (labelEl) return labelEl.textContent?.trim();
     }
 
-    // Try parent label
-    if (el.parentElement && el.parentElement.tagName.toLowerCase() === "label") {
-      return el.parentElement.textContent?.trim();
-    }
+    // // Try parent label
+    // if (el.parentElement && el.parentElement.tagName.toLowerCase() === "label") {
+    //   return el.parentElement.textContent?.trim();
+    // }
 
     return undefined;
   }

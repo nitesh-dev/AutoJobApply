@@ -1,3 +1,5 @@
+
+
 export function getUUID() {
     return "id-" + self.crypto.randomUUID();
 }
@@ -7,3 +9,4 @@ export function getUUID() {
 export function delay(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
+

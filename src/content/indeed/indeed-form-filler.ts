@@ -1,8 +1,13 @@
+import { Page } from "../automation/page";
 import { Logger } from "../logger";
 import { FormField } from "./types";
 
 
 export class IndeedAutoFiller {
+
+    constructor(private page: Page) {}
+
+
 
     private logger = new Logger();
     async wait(ms: number) {
@@ -34,12 +39,27 @@ export class IndeedAutoFiller {
             return true;
         }
 
-        if (field.type === "checkbox" || field.type === "radio") {
-            (el as HTMLInputElement).checked = Boolean(value);
-            el.dispatchEvent(new Event("input", { bubbles: true }));
-            el.dispatchEvent(new Event("change", { bubbles: true }));
-            this.logger.success(`Set ${field.type}: ${field.selector} = ${value}`);
+        if (field.type === "checkbox") {
+
+            // update checkbox state based on value
+            const checkbox = el as HTMLInputElement;
+            const shouldBeChecked = Boolean(value);
+            if (checkbox.checked !== shouldBeChecked) {
+                this.page.click(field.selector);
+                this.logger.success(`Set checkbox: ${field.selector} to ${shouldBeChecked}`);
+            }else{
+                this.logger.debug(`Checkbox: ${field.selector} already set to ${shouldBeChecked}`);
+            }
+
             return true;
+        }
+
+        if( field.type === "radio"){
+            if(Boolean(value)){
+                this.page.click(field.selector);
+                this.logger.success(`Selected ${field.type}: ${field.selector}`);
+                return true;
+            }
         }
 
         return false;
@@ -60,8 +80,9 @@ export class IndeedAutoFiller {
         input.focus();
         input.value = value;
         input.dispatchEvent(new Event("input", { bubbles: true }));
+        
 
-        await this.wait(300);
+        await this.wait(1000);
 
         // Find matching <li> from Indeed dropdown
         const options = Array.from(document.querySelectorAll("li[role='option']"));
