@@ -13,10 +13,12 @@ export interface Stats {
     skipped: number;
     applying: number;
     completed: number;
+    failed: number;
     queueSize: number;
     pending: number;
     isRunning: boolean;
     currentJob: Job | null;
+    jobQueue: Job[];
     tabs: Record<string, { role: Role; platform?: string }>;
 }
 

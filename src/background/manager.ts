@@ -6,6 +6,9 @@ export class BackgroundManager {
     private jobQueue: Job[] = [];
     private currentJob: Job | null = null;
     private isRunning = false;
+    private jobTimeoutTimer: any = null;
+    private readonly JOB_TIMEOUT_MS = 2 * 60 * 1000; // 1 minute timeout
+
     private config: UserConfig = {
         resumeText: "",
         query: [],
@@ -24,7 +27,8 @@ export class BackgroundManager {
         analyzed: 0,
         skipped: 0,
         applying: 0,
-        completed: 0
+        completed: 0,
+        failed: 0
     };
 
     getStats(): Stats {
@@ -33,6 +37,7 @@ export class BackgroundManager {
             queueSize: this.jobQueue.length,
             pending: this.jobQueue.filter(j => j.status === 'pending').length,
             currentJob: this.currentJob,
+            jobQueue: this.jobQueue,
             tabs: this.tabs as any,
             isRunning: this.isRunning
         };
@@ -40,6 +45,8 @@ export class BackgroundManager {
 
     async startAutomation() {
         this.isRunning = true;
+        this.currentJob = null;
+        this.clearJobTimeout();
         console.log("[Manager] Automation started");
 
         for (const tabId of Object.keys(this.tabs)) {
@@ -47,18 +54,22 @@ export class BackgroundManager {
         }
 
         // open tabs based on config
+        let maxPages = 2;
         await browser.tabs.create({ url: 'https://chatgpt.com/?temporary-chat=true&bot=true' });
         for (const q of this.config.query) {
 
             if (this.config.platform.indeed && q.search.trim() !== '') {
-                const indeedUrl = `https://www.indeed.com/jobs?q=${encodeURIComponent(q.search)}&l=${encodeURIComponent(q.location)}&fromage=1&from=searchOnDesktopSerp`;
-                await browser.tabs.create({ url: indeedUrl });
+                for (let page = 0; page < maxPages; page++) {
+                    const indeedUrl = `https://www.indeed.com/jobs?q=${encodeURIComponent(q.search)}&l=${encodeURIComponent(q.location)}&fromage=1&start=${page * 10}&from=searchOnDesktopSerp`;
+                    await browser.tabs.create({ url: indeedUrl });
+                }
             }
         }
     }
 
     async stopAutomation() {
         this.isRunning = false;
+        this.clearJobTimeout();
         console.log("[Manager] Automation stopped");
         // Optionally, close all tabs related to the automation
         for (const tabId of Object.keys(this.tabs)) {
@@ -78,6 +89,7 @@ export class BackgroundManager {
 
     async clearCache() {
         console.log("[Manager] Clearing cache (queue and stats)");
+        this.clearJobTimeout();
         this.jobQueue = [];
         this.currentJob = null;
         this.stats = {
@@ -85,7 +97,8 @@ export class BackgroundManager {
             analyzed: 0,
             skipped: 0,
             applying: 0,
-            completed: 0
+            completed: 0,
+            failed: 0
         };
         await this.saveState();
         return true;
@@ -149,6 +162,8 @@ export class BackgroundManager {
             if (!this.jobQueue.find(q => q.url === job.url)) {
                 this.jobQueue.push(job);
                 this.stats.totalFound++;
+            }else{
+                console.log(`[Manager] Job already in queue, skipping: ${job.title}`);
             }
         }
 
@@ -174,9 +189,27 @@ export class BackgroundManager {
 
         console.log('[Manager] Starting job:', nextJob.title);
 
+        // Set timeout for the job
+        this.startJobTimeout();
+
         // Open the job URL
         await browser.tabs.create({ url: nextJob.url, active: true });
         // The new tab will load, recognize itself as ANALYZER, and send REGISTER_TAB
+    }
+
+    private startJobTimeout() {
+        this.clearJobTimeout();
+        this.jobTimeoutTimer = setTimeout(() => {
+            console.warn(`[Manager] Job timeout reached for: ${this.currentJob?.title}`);
+            this.reportJobStatus('failed');
+        }, this.JOB_TIMEOUT_MS);
+    }
+
+    private clearJobTimeout() {
+        if (this.jobTimeoutTimer) {
+            clearTimeout(this.jobTimeoutTimer);
+            this.jobTimeoutTimer = null;
+        }
     }
 
     async handleProxyPrompt(payload: { prompt: string }, senderTabId?: number) {
@@ -222,7 +255,7 @@ export class BackgroundManager {
         }
     }
 
-    private async finishCurrentJob(status: 'completed' | 'skipped' | 'applying') {
+    private async finishCurrentJob(status: 'completed' | 'skipped' | 'applying' | 'failed') {
         if (this.currentJob) {
             this.currentJob.status = status;
 
@@ -230,6 +263,7 @@ export class BackgroundManager {
             if (status === 'skipped') this.stats.skipped++;
             if (status === 'applying') this.stats.applying++;
             if (status === 'completed') this.stats.completed++;
+            if (status === 'failed') this.stats.failed++;
 
             // Update in queue
             const idx = this.jobQueue.findIndex(j => j.url === this.currentJob?.url);
@@ -242,6 +276,7 @@ export class BackgroundManager {
                 return;
             }
 
+            this.clearJobTimeout();
             this.currentJob = null;
             await this.saveState();
 

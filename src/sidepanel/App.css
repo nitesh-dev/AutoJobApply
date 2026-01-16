@@ -97,7 +97,111 @@
   padding: 0.4rem 0.6rem !important;
 }
 
-.tab-role {
+/* Job Tabs */
+.job-tabs {
+  display: flex;
+  gap: 2px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 2px;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border: 1px solid var(--border-color);
+}
+
+.job-tab-btn {
+  flex: 1;
+  padding: 0.35rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  min-width: 60px;
+}
+
+.job-tab-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.job-tab-btn.active {
+  color: #fff;
+  background: var(--primary);
+}
+
+.job-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.job-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.job-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.job-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.job-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.job-card:hover {
+  background: var(--bg-card-hover);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.job-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.job-card-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.job-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+
+.job-role {
   font-weight: 600;
   color: #e2e8f0;
 }
@@ -131,7 +235,14 @@
 .badge-gpt { background: var(--success); color: white; }
 .badge-finder { background: var(--primary); color: white; }
 .badge-analyzer { background: var(--warning); color: white; }
-.badge-form { background: #8b5cf6; color: white; }
+.badge-formfiller { background: #8b5cf6; color: white; }
+
+.badge-pending { background: #64748b; color: white; }
+.badge-analyzing { background: #f59e0b; color: white; }
+.badge-applying { background: #10b981; color: white; }
+.badge-completed { background: #3b82f6; color: white; }
+.badge-skipped { background: #f43f5e; color: white; }
+.badge-failed { background: #ef4444; color: white; }
 
 .settings-panel {
   display: flex;

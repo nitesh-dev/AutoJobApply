@@ -8,6 +8,7 @@ export default function App() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [config, setConfig] = useState<UserConfig | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [activeJobTab, setActiveJobTab] = useState<string>("all");
 
   const fetchStats = async () => {
     try {
@@ -82,7 +83,12 @@ export default function App() {
   };
 
   const clearCache = async () => {
-    if (!confirm("Clear all job data and stats? This won't affect your resume or settings.")) return;
+    if (
+      !confirm(
+        "Clear all job data and stats? This won't affect your resume or settings."
+      )
+    )
+      return;
     try {
       await api.clearCache();
       fetchStats();
@@ -91,7 +97,8 @@ export default function App() {
     }
   };
 
-  if (!stats || !config) return <div className="dashboard-container">Loading...</div>;
+  if (!stats || !config)
+    return <div className="dashboard-container">Loading...</div>;
 
   const tabEntries = Object.entries(stats.tabs || {});
 
@@ -384,6 +391,12 @@ export default function App() {
               </span>
             </div>
             <div className="card stat-card">
+              <span className="label">Failed</span>
+              <span className="value" style={{ color: "#ef4444" }}>
+                {stats.failed}
+              </span>
+            </div>
+            <div className="card stat-card">
               <span className="label">Tabs</span>
               <span className="value">{tabEntries.length}</span>
             </div>
@@ -422,24 +435,99 @@ export default function App() {
             </button>
           </div>
 
-          <div className="section-lbl">Current Job</div>
-          <div
-            className="card"
-            style={{ border: "1px solid rgba(59, 130, 246, 0.2)" }}
-          >
-            {stats.currentJob ? (
-              <div className="job-info">
-                <div className="job-title">{stats.currentJob.title}</div>
-                <div className="job-status">{stats.currentJob.status}</div>
-              </div>
-            ) : (
-              <div style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>
-                Bot is idle. Waiting for jobs...
-              </div>
-            )}
+          <div className="section-lbl">Job Queue & History</div>
+          <div className="job-tabs">
+            {[
+              "all",
+              "pending",
+              "analyzing",
+              "applying",
+              "completed",
+              "skipped",
+              "failed",
+            ].map((tab) => {
+              const count =
+                tab === "all"
+                  ? (stats.jobQueue || []).length
+                  : (stats.jobQueue || []).filter((j) => j.status === tab)
+                      .length;
+              return (
+                <button
+                  key={tab}
+                  className={`job-tab-btn ${
+                    activeJobTab === tab ? "active" : ""
+                  }`}
+                  onClick={() => setActiveJobTab(tab)}
+                >
+                  <div style={{ fontSize: "0.75rem" }}>
+                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  </div>
+                  <div style={{ opacity: 0.8, fontSize: "0.6rem" }}>
+                    {count}
+                  </div>
+                </button>
+              );
+            })}
           </div>
 
-          <div className="section-lbl">Active Tabs ({tabEntries.length})</div>
+          <div className="job-list">
+            {(() => {
+              const filteredJobs = stats.jobQueue
+                .filter((j) => {
+                  const currentStatus = j.status.toLowerCase();
+                  if (activeJobTab === "all") return true;
+                  return currentStatus === activeJobTab.toLowerCase();
+                })
+                .reverse();
+
+              if (filteredJobs.length === 0) {
+                return (
+                  <div
+                    className="empty-msg"
+                    style={{
+                      textAlign: "center",
+                      padding: "1rem",
+                      color: "var(--text-muted)",
+                      fontSize: "0.8rem",
+                    }}
+                  >
+                    No {activeJobTab === "all" ? "" : activeJobTab} jobs found.
+                  </div>
+                );
+              }
+
+              return filteredJobs.map((job) => (
+                <div
+                  key={job.id}
+                  className="card job-card"
+                  onClick={() => window.open(job.url, "_blank")}
+                >
+                  <div className="job-card-header">
+                    <div className="job-card-title">{job.title}</div>
+                    <span
+                      className={`status-badge badge-${job.status
+                        .toLowerCase()
+                        .replace("_", "")}`}
+                      style={{ fontSize: "0.6rem", padding: "1px 6px" }}
+                    >
+                      {job.status}
+                    </span>
+                  </div>
+                  <div className="job-card-meta">
+                    <span>{new URL(job.url).hostname.replace("www.", "")}</span>
+                    <span>•</span>
+                    <span style={{ fontFamily: "monospace", opacity: 0.6 }}>
+                      ID: {job.id.slice(-6)}
+                    </span>
+                  </div>
+                </div>
+              ));
+            })()}
+          </div>
+
+          <div className="section-lbl" style={{ marginTop: "0.5rem" }}>
+            Active Tabs ({tabEntries.length})
+          </div>
           <div className="tabs-list">
             {tabEntries.length > 0 ? (
               tabEntries.map(([id, info]) => (

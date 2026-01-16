@@ -33,6 +33,11 @@ export class IndeedAnalyzer extends BaseExecutor {
                 await api.reportJobStatus('skipped');
                 close()
                 return;
+            } else if(applyBtn.innerHTML.includes("Apply on company site")){
+                this.logger.info("Job requires external application. Skipping.");
+                await api.reportJobStatus('skipped');
+                close()
+                return;
             }
             const description = (el as HTMLElement).innerText;
 

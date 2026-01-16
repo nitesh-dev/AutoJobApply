@@ -4,6 +4,7 @@ import { IndeedAutoFiller } from "./indeed-form-filler";
 import { IndeedDynamicFormParser } from "./indeed-form-parser";
 import { BaseExecutor } from "../common/BaseExecutor";
 import { ExtensionMessage } from "@/types";
+import { delay } from "../utils";
 
 export class IndeedForm extends BaseExecutor {
     // Hardcoded for now as per previous implementation
@@ -35,15 +36,20 @@ export class IndeedForm extends BaseExecutor {
             await this.page.waitForNetworkIdle();
             await this.page.waitForSelector("#ia-container");
 
-            if(this.url.includes("form/review-module")) {
+            if (this.url.includes("form/review-module")) {
                 await this.page.waitForSelector('button[data-testid="submit-application-button"]', 10000)
             }
 
-            if(this.url.includes("form/post-apply")){
+            if (this.url.includes("form/post-apply")) {
                 // form submitted successfully
                 this.logger.success("Application form submitted successfully!");
                 await api.reportJobStatus('completed');
                 return;
+            }
+
+            if (this.url.includes("resume-selection-module")) {
+                this.logger.info("On resume selection module, clicking continue...");
+                await delay(4000);
             }
 
             const parser = new IndeedDynamicFormParser();
@@ -86,7 +92,7 @@ export class IndeedForm extends BaseExecutor {
 
 
 
-                if(this.url.includes("form/review-module")) {
+                if (this.url.includes("form/review-module")) {
                     this.logger.success("Application form submitted successfully!");
                     await api.reportJobStatus('completed');
                     close();
@@ -95,6 +101,8 @@ export class IndeedForm extends BaseExecutor {
 
                 // If it's the final review page or similar, we might want to report 'completed'
                 // For now, let's just keep reporting progress.
+            }else {
+                this.logger.warning("No continue/submit button found.");
             }
 
         } catch (error) {

@@ -165,6 +165,7 @@ export class IndeedDynamicFormParser {
         "submit application",
         "next",
         "apply",
+        "review your application"
       ];
 
       if (!text || !keywords.some(k => text.includes(k))) continue;
