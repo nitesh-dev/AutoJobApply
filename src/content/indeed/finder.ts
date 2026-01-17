@@ -2,6 +2,7 @@ import { Page } from "../automation/page";
 import { api } from "@/services/extensionApi";
 import { BaseExecutor } from "../common/BaseExecutor";
 import { ExtensionMessage } from "@/types";
+import { delay } from "../utils";
 
 export class IndeedFinder extends BaseExecutor {
     private allJobsSelector = "#mosaic-provider-jobcards ul li"; // Slightly updated selector
@@ -12,7 +13,7 @@ export class IndeedFinder extends BaseExecutor {
 
     init() {
         // Auto-start scanning for now (prototype style)
-        setTimeout(() => this.scanJobs(), 3000);
+        this.scanJobs();
     }
 
     handleMessage(message: ExtensionMessage) {
@@ -23,13 +24,14 @@ export class IndeedFinder extends BaseExecutor {
     }
 
     async scanJobs() {
+        await delay(3000)
         this.logger.info("Scanning for jobs...");
         try {
             // Wait for list
             await this.page.waitForSelector("#mosaic-provider-jobcards");
 
             const jobElements = Array.from(document.querySelectorAll(this.allJobsSelector))
-                .filter(el => (el as HTMLElement).offsetParent !== null);
+                .filter(el => el.checkVisibility() && el.clientHeight > 0);
             const jobs: any[] = [];
 
             jobElements.forEach((el) => {
@@ -46,6 +48,7 @@ export class IndeedFinder extends BaseExecutor {
             });
 
             this.logger.success(`Found ${jobs.length} jobs.`);
+            console.log({jobs})
 
             await api.jobListFound(jobs);
 

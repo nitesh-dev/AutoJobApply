@@ -75,6 +75,25 @@ export class IndeedAutoFiller {
 
         this.logger.processing(`Filling select: ${field.selector} with "${value}"`);
 
+        // Check if it's a native <select> element
+        if (el instanceof HTMLSelectElement) {
+            const options = Array.from(el.options);
+            const match = options.find((opt) =>
+                opt.text.toLowerCase().includes(value.toLowerCase()) ||
+                opt.label.toLowerCase().includes(value.toLowerCase()) ||
+                opt.value.toLowerCase() === value.toLowerCase()
+            );
+
+            if (match) {
+                el.value = match.value;
+                el.dispatchEvent(new Event("change", { bubbles: true }));
+                this.logger.success(`Selected native option for ${field.selector}: "${match.text}"`);
+                return true;
+            }
+            this.logger.warning(`No matching native option found for ${field.selector}: "${value}"`);
+            return false;
+        }
+
         // Focus → type → wait for dropdown → select first matching option
         const input = el as HTMLInputElement;
         input.focus();

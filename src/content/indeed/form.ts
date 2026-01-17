@@ -9,6 +9,7 @@ import { delay } from "../utils";
 export class IndeedForm extends BaseExecutor {
     // Hardcoded for now as per previous implementation
     private url = "";
+    private isProcessing = false;
 
 
     constructor(private page: Page) {
@@ -29,6 +30,12 @@ export class IndeedForm extends BaseExecutor {
     private excludeForm = ["resume-selection-module", "form/review-module"]
 
     async processForm() {
+        if (this.isProcessing) {
+            this.logger.info("Form processing already in progress. Skipping duplicate call.");
+            return;
+        }
+
+        this.isProcessing = true;
         try {
 
             let resume = await (await api.getConfig()).resumeText;
@@ -53,7 +60,7 @@ export class IndeedForm extends BaseExecutor {
             }
 
             const parser = new IndeedDynamicFormParser();
-            const { fields, continueButton } = parser.parse();
+            const { fields, continueButton } = await parser.parse();
             this.logger.success("Form parsed successfully", { fields, continueButton });
 
             // don't process gpt in url include excludeForm
@@ -95,20 +102,23 @@ export class IndeedForm extends BaseExecutor {
                 if (this.url.includes("form/review-module")) {
                     this.logger.success("Application form submitted successfully!");
                     await api.reportJobStatus('completed');
-                    close();
+
                 }
 
 
                 // If it's the final review page or similar, we might want to report 'completed'
                 // For now, let's just keep reporting progress.
-            }else {
+            } else {
                 this.logger.warning("No continue/submit button found.");
             }
 
         } catch (error) {
             this.logger.error("Error processing form", error);
             await api.reportJobStatus('failed');
+        } finally {
+            this.isProcessing = false;
         }
+        // close(); // We shouldn't call close() here as the background script now handles tab closing, and it might be premature.
     }
 
     onUrlChange(_url: string) {

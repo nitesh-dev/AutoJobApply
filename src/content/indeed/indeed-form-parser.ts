@@ -1,4 +1,4 @@
-import { getUUID } from "../utils";
+import { getUUID, delay } from "../utils";
 import { FieldType, FormField, ParsedForm } from "./types";
 
 
@@ -212,58 +212,81 @@ export class IndeedDynamicFormParser {
     return options;
   }
 
-  public parse(): ParsedForm {
-    const elements = this.root.querySelectorAll(
-      "input:not([type='hidden']), textarea, select, [role='combobox']"
-    );
+  async parse(): Promise<ParsedForm> {
+    let fields: FormField[] = [];
+    let continueButton: FormField | undefined;
+    let retries = 0;
 
-    const fields: FormField[] = [];
+    while (retries < 2) {
+      const elements = this.root.querySelectorAll(
+        "input:not([type='hidden']), textarea, select, [role='combobox']"
+      );
 
-    for (const element of elements) {
-      const htmlEl = element as HTMLElement;
+      fields = [];
+      for (const element of elements) {
+        const htmlEl = element as HTMLElement;
 
-      // Skip invisible elements
-      if (!this.isVisible(htmlEl)) continue;
+        // Skip invisible elements
+        if (!this.isVisible(htmlEl)) continue;
 
-      // Generate unique ID and apply to element if it doesn't have one
-      const uuid = getUUID();
-      const existingId = htmlEl.getAttribute("id");
+        // Generate unique ID and apply to element if it doesn't have one
+        const uuid = getUUID();
+        const existingId = htmlEl.getAttribute("id");
 
-      let finalSelector: string;
-      if (!existingId) {
-        // Apply the UUID as the id attribute
-        htmlEl.setAttribute("id", uuid);
-        finalSelector = `${htmlEl.tagName.toLowerCase()}#${uuid}`;
-      } else {
-        // Use existing selector logic
-        const selector = this.buildSelector(htmlEl);
-        if (!selector) continue;
-        finalSelector = selector;
+        let finalSelector: string;
+        if (!existingId) {
+          // Apply the UUID as the id attribute
+          htmlEl.setAttribute("id", uuid);
+          finalSelector = `${htmlEl.tagName.toLowerCase()}#${uuid}`;
+        } else {
+          // Use existing selector logic
+          const selector = this.buildSelector(htmlEl);
+          if (!selector) continue;
+          finalSelector = selector;
+        }
+
+        const type = this.detectType(htmlEl);
+        const value = this.extractValue(htmlEl, type);
+        const label = this.extractLabel(htmlEl);
+
+        const field: FormField = {
+          label,
+          selector: finalSelector,
+          type,
+          value,
+        };
+
+        // Add options for select elements
+        if (type === "select" || htmlEl.tagName.toLowerCase() === "select") {
+          field.options = this.extractSelectOptions(htmlEl);
+        }
+
+        fields.push(field);
       }
 
-      const type = this.detectType(htmlEl);
-      const value = this.extractValue(htmlEl, type);
-      const label = this.extractLabel(htmlEl);
+      // Parse continue button
+      continueButton = this.parseContinueButton();
 
-
-      const field: FormField = {
-        // name: uuid,
-        label,
-        selector: finalSelector,
-        type,
-        value,
-      };
-
-      // Add options for select elements
-      if (type === "select" || htmlEl.tagName.toLowerCase() === "select") {
-        field.options = this.extractSelectOptions(htmlEl);
+      // If we found both fields and a continue button, we are likely done
+      if (fields.length > 0 && continueButton) {
+        break;
       }
 
-      fields.push(field);
+      // If we found nothing, or if we have fields but are missing the button, retry
+      // (Some pages legitimately have no fields, so we'll be more lenient if a button is found)
+      if (fields.length === 0 && !continueButton) {
+        console.log(`No fields or continue button found, retrying... (${retries + 1}/3)`);
+      } else if (fields.length > 0 && !continueButton) {
+        console.log(`Fields found but no continue button, retrying... (${retries + 1}/3)`);
+      } else if (fields.length === 0 && continueButton) {
+        // On transition pages, fields might be empty. We still retry once just in case.
+        if (retries >= 1) break; 
+        console.log(`Continue button found but no fields, retrying once more... (${retries + 1}/3)`);
+      }
+
+      await delay(2000);
+      retries++;
     }
-
-    // Parse continue button separately
-    const continueButton = this.parseContinueButton();
 
     return {
       fields,

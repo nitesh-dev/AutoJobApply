@@ -6,8 +6,9 @@ export class BackgroundManager {
     private jobQueue: Job[] = [];
     private currentJob: Job | null = null;
     private isRunning = false;
+    private isProcessing = false; // Lock for processNextJob
     private jobTimeoutTimer: any = null;
-    private readonly JOB_TIMEOUT_MS = 2 * 60 * 1000; // 1 minute timeout
+    private readonly JOB_TIMEOUT_MS = 2 * 60 * 1000; // 2 minute timeout
 
     private config: UserConfig = {
         resumeText: "",
@@ -54,13 +55,13 @@ export class BackgroundManager {
         }
 
         // open tabs based on config
-        let maxPages = 2;
+        let maxPages = 1;
         await browser.tabs.create({ url: 'https://chatgpt.com/?temporary-chat=true&bot=true' });
         for (const q of this.config.query) {
 
             if (this.config.platform.indeed && q.search.trim() !== '') {
                 for (let page = 0; page < maxPages; page++) {
-                    const indeedUrl = `https://www.indeed.com/jobs?q=${encodeURIComponent(q.search)}&l=${encodeURIComponent(q.location)}&fromage=1&start=${page * 10}&from=searchOnDesktopSerp`;
+                    const indeedUrl = `https://www.indeed.com/jobs?q=${encodeURIComponent(q.search)}&l=${encodeURIComponent(q.location)}&start=${page * 10}`;
                     await browser.tabs.create({ url: indeedUrl });
                 }
             }
@@ -141,7 +142,16 @@ export class BackgroundManager {
         }
 
         if (this.gptTabId === tabId) this.gptTabId = null;
-        if (this.activeJobTabId === tabId) this.activeJobTabId = null;
+
+        if (this.activeJobTabId === tabId) {
+            console.log(`[Manager] Active job tab ${tabId} closed.`);
+            this.activeJobTabId = null;
+            // If the job was still in progress, mark it as failed
+            if (this.currentJob && ['analyzing', 'applying'].includes(this.currentJob.status)) {
+                console.log(`[Manager] Job ${this.currentJob.title} was in progress but tab was closed. Marking as failed.`);
+                this.reportJobStatus('failed');
+            }
+        }
 
 
         return true
@@ -150,6 +160,7 @@ export class BackgroundManager {
     async handleJobListFound(payload: { jobs: any[] }) {
         console.log(`[Manager] Found ${payload.jobs.length} jobs. Adding to queue.`);
 
+        // https://www.indeed.com/viewjob?jk=fb1dc0b6f9d2e067&from=serp&vjs=3 get jk
         const newJobs = payload.jobs.map(j => ({
             id: j.id || j.url, // fallback ID
             title: j.title,
@@ -159,10 +170,10 @@ export class BackgroundManager {
 
         // Simple dedup based on URL
         for (const job of newJobs) {
-            if (!this.jobQueue.find(q => q.url === job.url)) {
+            if (!this.jobQueue.find(q => q.id === job.id)) {
                 this.jobQueue.push(job);
                 this.stats.totalFound++;
-            }else{
+            } else {
                 console.log(`[Manager] Job already in queue, skipping: ${job.title}`);
             }
         }
@@ -172,29 +183,48 @@ export class BackgroundManager {
     }
 
     async processNextJob() {
+        if (!this.isRunning) {
+            console.log('[Manager] Automation is stopped. Skipping next job.');
+            return;
+        }
+
+        if (this.isProcessing) {
+            console.log('[Manager] processNextJob already in progress, skipping.');
+            return;
+        }
+
         if (this.currentJob) {
             console.log('[Manager] Already processing a job:', this.currentJob.title);
             return;
         }
 
-        const nextJob = this.jobQueue.find(j => j.status === 'pending');
-        if (!nextJob) {
-            console.log('[Manager] No pending jobs in queue.');
-            return;
+        this.isProcessing = true;
+        try {
+            const nextJob = this.jobQueue.find(j => j.status === 'pending');
+            if (!nextJob) {
+                console.log('[Manager] No pending jobs in queue.');
+                return;
+            }
+
+            this.currentJob = nextJob;
+            this.currentJob.status = 'analyzing';
+            await this.saveState();
+
+            console.log('[Manager] Starting job:', nextJob.title);
+
+            // Set timeout for the job
+            this.startJobTimeout();
+
+            // Open the job URL
+            const tab = await browser.tabs.create({ url: nextJob.url, active: true });
+            this.activeJobTabId = tab.id ?? null;
+            // The new tab will load, recognize itself as ANALYZER, and send REGISTER_TAB
+            
+        } catch (error) {
+            console.error('[Manager] Error in processNextJob:', error);
+        } finally {
+            this.isProcessing = false;
         }
-
-        this.currentJob = nextJob;
-        this.currentJob.status = 'analyzing';
-        await this.saveState();
-
-        console.log('[Manager] Starting job:', nextJob.title);
-
-        // Set timeout for the job
-        this.startJobTimeout();
-
-        // Open the job URL
-        await browser.tabs.create({ url: nextJob.url, active: true });
-        // The new tab will load, recognize itself as ANALYZER, and send REGISTER_TAB
     }
 
     private startJobTimeout() {
@@ -238,8 +268,24 @@ export class BackgroundManager {
         return response;
     }
 
-    reportJobStatus(status: 'analyzing' | 'applying' | 'completed' | 'skipped' | 'failed') {
-        if (!this.currentJob) return;
+    reportJobStatus(status: 'analyzing' | 'applying' | 'completed' | 'skipped' | 'failed', senderTabId?: number) {
+        if (!this.currentJob) {
+            console.log(`[Manager] Received status ${status} but no current job.`);
+            return;
+        }
+
+        // Optional: verify that the report comes from the active job tab
+        if (senderTabId && this.activeJobTabId && senderTabId !== this.activeJobTabId) {
+            // Check if this tab is one we know about and if it's a role that should be reporting
+            const tabInfo = this.tabs[senderTabId];
+            if (tabInfo?.role !== 'FORM_FILLER' && tabInfo?.role !== 'ANALYZER') {
+                 console.warn(`[Manager] Status ${status} reported from non-job tab ${senderTabId}. Ignoring.`);
+                 return;
+            }
+            // If it is a FORM_FILLER or ANALYZER, maybe it's a redirect? 
+            // We'll be lenient for now but log it.
+            console.log(`[Manager] Status ${status} from tab ${senderTabId} (active is ${this.activeJobTabId}).`);
+        }
 
         console.log(`[Manager] Reporting Status: ${status} for ${this.currentJob.title}`);
 
@@ -277,6 +323,18 @@ export class BackgroundManager {
             }
 
             this.clearJobTimeout();
+            
+            // Close the job tab
+            if (this.activeJobTabId) {
+                try {
+                    console.log(`[Manager] Closing job tab: ${this.activeJobTabId}`);
+                    await browser.tabs.remove(this.activeJobTabId);
+                } catch (e) {
+                    console.warn(`[Manager] Could not close tab ${this.activeJobTabId}:`, e);
+                }
+                this.activeJobTabId = null;
+            }
+
             this.currentJob = null;
             await this.saveState();
 

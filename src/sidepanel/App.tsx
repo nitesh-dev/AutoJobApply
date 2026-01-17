@@ -9,6 +9,7 @@ export default function App() {
   const [config, setConfig] = useState<UserConfig | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [activeJobTab, setActiveJobTab] = useState<string>("all");
+  const [localResumeText, setLocalResumeText] = useState("");
 
   const fetchStats = async () => {
     try {
@@ -23,6 +24,9 @@ export default function App() {
     try {
       const response = await api.getConfig();
       setConfig(response);
+      if (response.resumeText) {
+        setLocalResumeText(response.resumeText);
+      }
     } catch (error) {
       console.error("Failed to fetch config:", error);
     }
@@ -96,6 +100,16 @@ export default function App() {
       console.error("Failed to clear cache:", error);
     }
   };
+
+  useEffect(() => {
+    if (!config) return;
+    const timer = setTimeout(() => {
+      if (localResumeText !== config.resumeText) {
+        updateConfig({ resumeText: localResumeText });
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [localResumeText]);
 
   if (!stats || !config)
     return <div className="dashboard-container">Loading...</div>;
@@ -188,8 +202,8 @@ export default function App() {
             </div>
             <textarea
               placeholder="Paste your resume or professional bio here..."
-              value={config.resumeText}
-              onChange={(e) => updateConfig({ resumeText: e.target.value })}
+              value={localResumeText}
+              onChange={(e) => setLocalResumeText(e.target.value)}
             />
           </div>
 
