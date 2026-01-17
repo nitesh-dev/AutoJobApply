@@ -52,6 +52,7 @@ export type MessageMap = {
     'UPDATE_CONFIG': Partial<UserConfig>;
     'START_AUTOMATION': void;
     'STOP_AUTOMATION': void;
+    'FETCH_JOBS': void;
     'CLEAR_CACHE': void;
 };
 

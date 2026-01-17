@@ -45,6 +45,9 @@ browser.runtime.onMessage.addListener((msg: unknown, sender: browser.Runtime.Mes
                 case 'STOP_AUTOMATION':
                     data = await manager.stopAutomation();
                     break;
+                case 'FETCH_JOBS':
+                    data = await manager.fetchJobs();
+                    break;
                 case 'CLEAR_CACHE':
                     data = await manager.clearCache();
                     break;

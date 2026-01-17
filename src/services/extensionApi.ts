@@ -45,6 +45,9 @@ export const api = {
     stopAutomation: (): Promise<void> =>
         sendMessage('STOP_AUTOMATION', undefined),
 
+    fetchJobs: (): Promise<void> =>
+        sendMessage('FETCH_JOBS', undefined),
+
     clearCache: (): Promise<boolean> =>
         sendMessage('CLEAR_CACHE', undefined),
 };

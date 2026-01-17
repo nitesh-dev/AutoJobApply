@@ -50,18 +50,23 @@ export class BackgroundManager {
         this.clearJobTimeout();
         console.log("[Manager] Automation started");
 
-        for (const tabId of Object.keys(this.tabs)) {
-            await browser.tabs.remove(Number(tabId));
+        // Ensure GPT is open if not already
+        if (!this.gptTabId) {
+            await browser.tabs.create({ url: 'https://chatgpt.com/?temporary-chat=true&bot=true' });
         }
 
-        // open tabs based on config
-        let maxPages = 1;
-        await browser.tabs.create({ url: 'https://chatgpt.com/?temporary-chat=true&bot=true' });
-        for (const q of this.config.query) {
+        // Start processing if we have jobs
+        this.processNextJob();
+    }
 
+    async fetchJobs() {
+        console.log("[Manager] Fetching jobs...");
+        
+        let maxPages = 1;
+        for (const q of this.config.query) {
             if (this.config.platform.indeed && q.search.trim() !== '') {
                 for (let page = 0; page < maxPages; page++) {
-                    const indeedUrl = `https://www.indeed.com/jobs?q=${encodeURIComponent(q.search)}&l=${encodeURIComponent(q.location)}&start=${page * 10}`;
+                    const indeedUrl = `https://www.indeed.com/jobs?q=${encodeURIComponent(q.search)}&l=${encodeURIComponent(q.location)}&start=${page * 10}&bot=true`;
                     await browser.tabs.create({ url: indeedUrl });
                 }
             }

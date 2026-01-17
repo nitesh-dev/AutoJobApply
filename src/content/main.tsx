@@ -19,16 +19,19 @@ let url = location.href;
 
 // Wait for page load
 async function init() {
-
-
-  let isRunning = (await api.getStats()).isRunning;
-  if(!isRunning){
-    logger.info("AutoJobApply: Automation is not running. Exiting content script.");
-    return;
-  }
   url = location.href;
   let role: Role | null = null;
   let platform: "INDEED" | "LINKEDIN" | undefined;
+
+  if (!url.includes("bot=true")) {
+    let isRunning = (await api.getStats()).isRunning;
+    if (!isRunning) {
+      logger.info(
+        "AutoJobApply: Automation is not running. Exiting content script."
+      );
+      return;
+    }
+  }
 
   if (url.includes("chatgpt.com") || url.includes("chat.openai.com")) {
     role = "GPT";

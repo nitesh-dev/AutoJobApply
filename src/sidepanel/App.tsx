@@ -32,6 +32,15 @@ export default function App() {
     }
   };
 
+  const fetchJobs = async () => {
+    try {
+      await api.fetchJobs();
+      fetchStats();
+    } catch (error) {
+      console.error("Failed to fetch jobs:", error);
+    }
+  };
+
   useEffect(() => {
     fetchStats();
     fetchConfig();
@@ -446,6 +455,32 @@ export default function App() {
                   Start Automation
                 </>
               )}
+            </button>
+
+            <button
+              className="btn fetch-btn"
+              onClick={fetchJobs}
+              style={{
+                marginLeft: "8px",
+                backgroundColor: "#10b981",
+                color: "white",
+              }}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              Fetch Jobs
             </button>
           </div>
 
