@@ -1,0 +1,72 @@
+.settings-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  animation: fadeIn 0.2s ease-out;
+  padding-bottom: 0.75rem;
+
+  .platforms-row {
+    display: flex;
+    gap: 1.2rem;
+    padding: 0.15rem 0.3rem;
+  }
+
+  .platform-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    user-select: none;
+    color: #cbd5e1;
+
+    input {
+      width: 14px;
+      height: 14px;
+      cursor: pointer;
+      accent-color: #3b82f6;
+    }
+  }
+
+  .section-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 0.15rem;
+  }
+
+  .queries-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+
+    .query-item {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      animation: slideIn 0.2s ease-out;
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateX(-5px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

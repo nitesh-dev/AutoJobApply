@@ -1,0 +1,43 @@
+.automation-control {
+  margin: 0.25rem 0;
+  display: flex;
+  justify-content: center;
+
+  .start-btn {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: none;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+    }
+
+    &.running {
+      background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+      box-shadow: 0 4px 12px rgba(225, 29, 72, 0.3);
+
+      &:hover {
+        box-shadow: 0 6px 16px rgba(225, 29, 72, 0.4);
+      }
+    }
+  }
+
+  .fetch-btn {
+    height: auto;
+    font-size: 0.85rem;
+    padding: 0 1rem;
+  }
+}

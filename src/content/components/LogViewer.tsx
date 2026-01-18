@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { logStore } from '../logger/store';
 import { LogEntry, LogLevel } from '../logger/types';
-import './LogViewer.css';
+import './LogViewer.scss';
 
 interface LogViewerProps {
   maxHeight?: string;
