@@ -75,8 +75,8 @@ export class IndeedAnalyzer extends BaseExecutor {
 
         } catch (e: any) {
             this.logger.error("Failed to analyze job", e);
-            alert("Error analyzing job: " + (e.message || String(e)));
-            // await api.reportJobStatus('failed', e.message || String(e));
+            // alert("Error analyzing job: " + (e.message || String(e)));
+            await api.reportJobStatus('failed', e.message || String(e));
         }
 
         // setTimeout(() => {
