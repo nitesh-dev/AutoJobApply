@@ -118,14 +118,52 @@ export class IndeedDynamicFormParser {
 
 
   private extractLabel(el: HTMLElement): string | undefined {
-
-    // merge placeholder too
-    // // Try aria-label
-    // const ariaLabel = el.getAttribute("aria-label");
-    // if (ariaLabel) return ariaLabel;
-
-    // Try associated label element
     const id = el.getAttribute("id");
+    const type = this.detectType(el);
+
+    // For radio/checkbox, we need the group question + the specific option label
+    if (type === "radio" || type === "checkbox") {
+      let questionText = "";
+      
+      // 1. Try to find a grouping container label (Indeed specific structure)
+      const fieldset = el.closest("fieldset");
+      if (fieldset) {
+        const legend = fieldset.querySelector("legend");
+        if (legend) questionText = legend.textContent?.trim() || "";
+      }
+
+      // 2. Try looking for the "question label" by common Indeed ID patterns
+      if (!questionText && id) {
+        // e.g. input id: "single-select-question-:r0:-0" -> label id: "single-select-question-label-single-select-question-:r0:"
+        const baseId = id.split("-").slice(0, -1).join("-");
+        const groupLabel = this.root.querySelector(`[id*="label-${baseId}"]`);
+        if (groupLabel) {
+          questionText = groupLabel.textContent?.trim() || "";
+        }
+      }
+
+      // 3. Fallback: Check for aria-labelledby
+      const labelledBy = el.getAttribute("aria-labelledby");
+      if (!questionText && labelledBy) {
+        const labelEl = document.getElementById(labelledBy);
+        if (labelEl) questionText = labelEl.textContent?.trim() || "";
+      }
+
+      // Get the specific option label (the "Yes" or "No")
+      let optionLabel = "";
+      if (id) {
+        const labelEl = this.root.querySelector(`label[for="${id}"]`);
+        if (labelEl) optionLabel = labelEl.textContent?.trim() || "";
+      }
+
+      const finalLabel = questionText 
+        ? `${questionText}${optionLabel ? ` (${optionLabel})` : ""}` 
+        : optionLabel;
+
+      return finalLabel.replace(/\s+/g, ' ').replace(/\s\*$/, '').trim() || undefined;
+    }
+
+    // Try associated label element for other inputs
     if (id) {
       const labelEl = this.root.querySelector(`label[for="${id}"]`);
       const placeholder = el.getAttribute("placeholder");

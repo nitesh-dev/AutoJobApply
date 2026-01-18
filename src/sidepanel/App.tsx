@@ -268,6 +268,32 @@ export default function App() {
           </div>
 
           <div className="card">
+            <div className="section-lbl">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+              </svg>
+              BEHAVIOR
+            </div>
+            <label className="platform-checkbox">
+              <input
+                type="checkbox"
+                checked={config.runInBackground}
+                onChange={(e) => updateConfig({ runInBackground: e.target.checked })}
+              />
+              Run in background (don't force focus)
+            </label>
+          </div>
+
+          <div className="card">
             <div className="section-header-row">
               <div className="section-lbl" style={{ marginBottom: 0 }}>
                 <svg
@@ -569,6 +595,26 @@ export default function App() {
                       ID: {job.id.slice(-6)}
                     </span>
                   </div>
+                  {job.message && (
+                    <div
+                      className="job-card-msg"
+                      style={{
+                        marginTop: "0.4rem",
+                        fontSize: "0.7rem",
+                        color:
+                          job.status === "failed"
+                            ? "#ff4d4f"
+                            : job.status === "skipped"
+                            ? "#faad14"
+                            : "var(--text-muted)",
+                        fontStyle: "italic",
+                        borderTop: "1px dashed rgba(255,255,255,0.1)",
+                        paddingTop: "0.2rem",
+                      }}
+                    >
+                      {job.message}
+                    </div>
+                  )}
                 </div>
               ));
             })()}

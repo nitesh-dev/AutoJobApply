@@ -23,16 +23,6 @@ async function init() {
   let role: Role | null = null;
   let platform: "INDEED" | "LINKEDIN" | undefined;
 
-  if (!url.includes("bot=true")) {
-    let isRunning = (await api.getStats()).isRunning;
-    if (!isRunning) {
-      logger.info(
-        "AutoJobApply: Automation is not running. Exiting content script."
-      );
-      return;
-    }
-  }
-
   if (url.includes("chatgpt.com") || url.includes("chat.openai.com")) {
     role = "GPT";
   } else if (url.includes("indeed.com/jobs") || url.includes("indeed.com/q-")) {
@@ -51,55 +41,78 @@ async function init() {
     return;
   }
 
-  logger.info(`AutoJobApply: Registering as ${role}`);
+  const start = async (isManual = false) => {
+    logger.info(`AutoJobApply: Registering as ${role}`);
 
-  // Register Tab
-  await api.registerTab({ role, platform });
+    // Register Tab
+    await api.registerTab({ role: role!, platform });
 
-  // Initialize specific logic
-  const page = new Page();
-  let handler: BaseExecutor | null = null;
+    // Initialize specific logic
+    const page = new Page();
+    let handler: BaseExecutor | null = null;
 
-  if (role === "GPT") {
-    handler = new GPTExecutor();
-  } else if (role === "FINDER") {
-    handler = new IndeedFinder(page);
-  } else if (role === "ANALYZER") {
-    handler = new IndeedAnalyzer(page);
-  } else if (role === "FORM_FILLER") {
-    handler = new IndeedForm(page);
-  }
+    if (role === "GPT") {
+      handler = new GPTExecutor();
+    } else if (role === "FINDER") {
+      handler = new IndeedFinder(page);
+    } else if (role === "ANALYZER") {
+      handler = new IndeedAnalyzer(page);
+    } else if (role === "FORM_FILLER") {
+      handler = new IndeedForm(page);
+    }
 
-  if (handler) {
-    handler.init(url);
-  }
-
-  // Mount UI
-  const root = document.createElement("div");
-  root.id = "auto-job-apply-root";
-  document.body.appendChild(root);
-
-  createRoot(root).render(<App />);
-
-  // Centralized message listener
-  browser.runtime.onMessage.addListener((message: any) => {
-    logger.info("Content received message:", message);
     if (handler) {
-      return handler.handleMessage(message as ExtensionMessage);
+      handler.init(url, { noClick: isManual });
     }
-  });
 
-  setInterval(() => {
-    if (location.href !== url) {
-      url = location.href;
-      logger.debug(`URL changed to: ${url}`);
-      if (handler && handler.onUrlChange) {
-        handler.onUrlChange(url);
+    // Mount UI
+    const root = document.createElement("div");
+    root.id = "auto-job-apply-root";
+    document.body.appendChild(root);
+
+    createRoot(root).render(<App />);
+
+    // Centralized message listener
+    browser.runtime.onMessage.addListener((message: any) => {
+      logger.info("Content received message:", message);
+      if (handler) {
+        return handler.handleMessage(message as ExtensionMessage);
       }
-    }
-  }, 1000);
+    });
 
-  console.log("AutoJobApply: Content script initialized.");
+    setInterval(() => {
+      if (location.href !== url) {
+        url = location.href;
+        logger.debug(`URL changed to: ${url}`);
+        if (handler && handler.onUrlChange) {
+          handler.onUrlChange(url);
+        }
+      }
+    }, 1000);
+
+    console.log("AutoJobApply: Content script initialized.");
+  };
+
+  if (!url.includes("bot=true")) {
+    let isRunning = (await api.getStats()).isRunning;
+    if (!isRunning) {
+      logger.info(
+        "AutoJobApply: Automation is not running. Showing bypass button."
+      );
+      const btn = document.createElement("button");
+      btn.innerText = "Start Automation (Bypass)";
+      btn.style.cssText =
+        "position:fixed;top:20px;right:20px;z-index:999999;padding:10px 20px;background:#4A90E2;color:white;border:none;border-radius:5px;cursor:pointer;box-shadow: 0 2px 10px rgba(0,0,0,0.2);font-weight:bold;";
+      btn.onclick = () => {
+        btn.remove();
+        start(true);
+      };
+      document.body.appendChild(btn);
+      return;
+    }
+  }
+
+  await start();
 }
 
 setTimeout(init, 2000); // Give a small buffer

@@ -11,7 +11,7 @@ export class IndeedFinder2 extends BaseExecutor {
         super();
     }
 
-    init() {
+    init(url: string, options?: { noClick?: boolean }) {
         // Auto-start scanning for now (prototype style)
         this.scanJobs()
     }

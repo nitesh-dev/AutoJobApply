@@ -8,7 +8,7 @@ export abstract class BaseExecutor {
     /**
      * Initialize the executor. Called when the page role is determined.
      */
-    abstract init(url: string): void | Promise<void>;
+    abstract init(url: string, options?: { noClick?: boolean }): void | Promise<void>;
 
     /**
      * Handle incoming messages from the background script.

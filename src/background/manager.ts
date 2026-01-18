@@ -12,6 +12,7 @@ export class BackgroundManager {
 
     private config: UserConfig = {
         resumeText: "",
+        runInBackground: false,
         query: [],
         platform: {
             indeed: true,
@@ -52,7 +53,10 @@ export class BackgroundManager {
 
         // Ensure GPT is open if not already
         if (!this.gptTabId) {
-            await browser.tabs.create({ url: 'https://chatgpt.com/?temporary-chat=true&bot=true' });
+            await browser.tabs.create({ 
+                url: 'https://chatgpt.com/?temporary-chat=true&bot=true',
+                active: true
+            });
         }
 
         // Start processing if we have jobs
@@ -67,7 +71,7 @@ export class BackgroundManager {
             if (this.config.platform.indeed && q.search.trim() !== '') {
                 for (let page = 0; page < maxPages; page++) {
                     const indeedUrl = `https://www.indeed.com/jobs?q=${encodeURIComponent(q.search)}&l=${encodeURIComponent(q.location)}&start=${page * 10}&bot=true`;
-                    await browser.tabs.create({ url: indeedUrl });
+                    await browser.tabs.create({ url: indeedUrl, active: !this.config.runInBackground });
                 }
             }
         }
@@ -221,7 +225,7 @@ export class BackgroundManager {
             this.startJobTimeout();
 
             // Open the job URL
-            const tab = await browser.tabs.create({ url: nextJob.url, active: true });
+            const tab = await browser.tabs.create({ url: nextJob.url, active: !this.config.runInBackground });
             this.activeJobTabId = tab.id ?? null;
             // The new tab will load, recognize itself as ANALYZER, and send REGISTER_TAB
             
@@ -254,7 +258,7 @@ export class BackgroundManager {
         }
 
         // Focus GPT Tab
-        await browser.tabs.update(this.gptTabId, { active: true });
+        await browser.tabs.update(this.gptTabId, { active: !this.config.runInBackground });
 
         const response = await browser.tabs.sendMessage(this.gptTabId, {
             type: 'PROMPT_GPT',
@@ -267,13 +271,13 @@ export class BackgroundManager {
         console.log('[Manager] GPT Response:', { response });
 
         if (senderTabId && this.tabs[senderTabId]) {
-            await browser.tabs.update(senderTabId, { active: true });
+            await browser.tabs.update(senderTabId, { active: !this.config.runInBackground });
         }
 
         return response;
     }
 
-    reportJobStatus(status: 'analyzing' | 'applying' | 'completed' | 'skipped' | 'failed', senderTabId?: number) {
+    reportJobStatus(status: 'analyzing' | 'applying' | 'completed' | 'skipped' | 'failed', senderTabId?: number, message?: string) {
         if (!this.currentJob) {
             console.log(`[Manager] Received status ${status} but no current job.`);
             return;
@@ -292,12 +296,12 @@ export class BackgroundManager {
             console.log(`[Manager] Status ${status} from tab ${senderTabId} (active is ${this.activeJobTabId}).`);
         }
 
-        console.log(`[Manager] Reporting Status: ${status} for ${this.currentJob.title}`);
+        console.log(`[Manager] Reporting Status: ${status} for ${this.currentJob.title}${message ? ` - ${message}` : ''}`);
 
         if (status === 'analyzing') this.stats.analyzed++;
 
         if (['applying', 'completed', 'skipped', 'failed'].includes(status)) {
-            this.finishCurrentJob(status as any);
+            this.finishCurrentJob(status as any, message);
 
             // // close the tab
             // if (tabId && this.tabs[tabId]) {
@@ -306,9 +310,10 @@ export class BackgroundManager {
         }
     }
 
-    private async finishCurrentJob(status: 'completed' | 'skipped' | 'applying' | 'failed') {
+    private async finishCurrentJob(status: 'completed' | 'skipped' | 'applying' | 'failed', message?: string) {
         if (this.currentJob) {
             this.currentJob.status = status;
+            if (message) this.currentJob.message = message;
 
             // Increment stats
             if (status === 'skipped') this.stats.skipped++;
@@ -318,7 +323,10 @@ export class BackgroundManager {
 
             // Update in queue
             const idx = this.jobQueue.findIndex(j => j.url === this.currentJob?.url);
-            if (idx !== -1) this.jobQueue[idx].status = status;
+            if (idx !== -1) {
+                this.jobQueue[idx].status = status;
+                if (message) this.jobQueue[idx].message = message;
+            }
 
             await this.saveState();
 

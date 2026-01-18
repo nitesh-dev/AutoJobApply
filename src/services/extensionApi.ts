@@ -27,8 +27,8 @@ export const api = {
     proxyGpt: (prompt: string): Promise<string> =>
         sendMessage('PROXY_PROMPT_GPT', { prompt }),
 
-    reportJobStatus: (status: MessageMap['REPORT_JOB_STATUS']['status']): Promise<void> =>
-        sendMessage('REPORT_JOB_STATUS', { status }),
+    reportJobStatus: (status: MessageMap['REPORT_JOB_STATUS']['status'], message?: string): Promise<void> =>
+        sendMessage('REPORT_JOB_STATUS', { status, message }),
 
     getStats: (): Promise<Stats> =>
         sendMessage('GET_STATS', undefined),

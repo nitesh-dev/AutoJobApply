@@ -10,14 +10,16 @@ export class IndeedForm extends BaseExecutor {
     // Hardcoded for now as per previous implementation
     private url = "";
     private isProcessing = false;
+    private options?: { noClick?: boolean };
 
 
     constructor(private page: Page) {
         super();
     }
 
-    init(url: string) {
+    init(url: string, options?: { noClick?: boolean }) {
         this.url = url
+        this.options = options;
         this.logger.info("Form Filler initialized...");
         setTimeout(() => this.processForm(), 2000);
     }
@@ -94,10 +96,12 @@ export class IndeedForm extends BaseExecutor {
             }
 
             if (continueButton) {
+                if (this.options?.noClick) {
+                    this.logger.info("Autofill done. Manual mode: Skipping automatic click on continue/submit.");
+                    return;
+                }
                 this.logger.info("Autofill done. Clicking continue/submit...");
                 await this.page.click(continueButton.selector);
-
-
 
                 if (this.url.includes("form/review-module")) {
                     this.logger.success("Application form submitted successfully!");
@@ -112,9 +116,9 @@ export class IndeedForm extends BaseExecutor {
                 this.logger.warning("No continue/submit button found.");
             }
 
-        } catch (error) {
+        } catch (error: any) {
             this.logger.error("Error processing form", error);
-            await api.reportJobStatus('failed');
+            await api.reportJobStatus('failed', error.message || String(error));
         } finally {
             this.isProcessing = false;
         }

@@ -11,7 +11,7 @@ export class IndeedAnalyzer extends BaseExecutor {
         super();
     }
 
-    init() {
+    init(url: string, options?: { noClick?: boolean }) {
         // Wait for page to be ready, then extract
         this.analyze();
     }
@@ -32,12 +32,12 @@ export class IndeedAnalyzer extends BaseExecutor {
             const applyBtn = await this.page.waitForSelector("#jobsearch-ViewJobButtons-container>div button")
             if (applyBtn.innerHTML.includes("Applied")) {
                 this.logger.info("Already applied to this job. Skipping.");
-                await api.reportJobStatus('skipped');
+                await api.reportJobStatus('skipped', "Already applied");
                 close()
                 return;
             } else if (applyBtn.innerHTML.includes("Apply on company site")) {
                 this.logger.info("Job requires external application. Skipping.");
-                await api.reportJobStatus('skipped');
+                await api.reportJobStatus('skipped', "Requires external application");
                 close()
                 return;
             }
@@ -60,7 +60,7 @@ export class IndeedAnalyzer extends BaseExecutor {
             const answer = res as string;
 
             console.log("GPT Response:", { answer });
-            const decision = JSON.parse(answer.replace(/```json/g, '').replace(/```/g, '').trim());
+            const decision = JSON.parse(answer.replace(/```json/g, '').replace(/```/g, '').trim()) as { match: boolean; reason: string };
 
             console.log("Decision:", { decision });
             if (decision.match) {
@@ -68,14 +68,15 @@ export class IndeedAnalyzer extends BaseExecutor {
                 this.apply();
             } else {
                 this.logger.warning("Decided NOT to apply. Skipping.");
-                await api.reportJobStatus('skipped');
+                await api.reportJobStatus('skipped', decision.reason);
                 // window.close();
 
             }
 
-        } catch (e) {
+        } catch (e: any) {
             this.logger.error("Failed to analyze job", e);
-            await api.reportJobStatus('failed');
+            alert("Error analyzing job: " + (e.message || String(e)));
+            // await api.reportJobStatus('failed', e.message || String(e));
         }
 
         // setTimeout(() => {

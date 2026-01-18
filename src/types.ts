@@ -5,6 +5,7 @@ export interface Job {
     title: string;
     url: string;
     status: 'pending' | 'analyzing' | 'applying' | 'completed' | 'skipped' | 'failed';
+    message?: string;
 }
 
 export interface Stats {
@@ -24,6 +25,7 @@ export interface Stats {
 
 export interface UserConfig {
     resumeText: string;
+    runInBackground: boolean;
     query: {
         search: string;
         location: string;
@@ -45,7 +47,7 @@ export type MessageMap = {
     'GPT_READY': void;
     'PROMPT_GPT': { prompt: string, requestId?: string }; // Direct to GPT tab
     'PROXY_PROMPT_GPT': { prompt: string }; // From content script to background, returns string
-    'REPORT_JOB_STATUS': { status: 'analyzing' | 'applying' | 'completed' | 'skipped' | 'failed' };
+    'REPORT_JOB_STATUS': { status: 'analyzing' | 'applying' | 'completed' | 'skipped' | 'failed', message?: string };
     'PROCESS_NEXT_JOB': void;
     'GET_STATS': void;
     'GET_CONFIG': void;

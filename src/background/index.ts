@@ -34,7 +34,7 @@ browser.runtime.onMessage.addListener((msg: unknown, sender: browser.Runtime.Mes
                     data = await manager.handleProxyPrompt(message.payload as any, tabId);
                     break;
                 case 'REPORT_JOB_STATUS':
-                    data = manager.reportJobStatus((message.payload as any).status, tabId);
+                    data = manager.reportJobStatus((message.payload as any).status, tabId, (message.payload as any).message);
                     break;
                 case 'UPDATE_CONFIG':
                     data = await manager.updateConfig(message.payload as any);
