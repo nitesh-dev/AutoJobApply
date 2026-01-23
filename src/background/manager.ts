@@ -13,6 +13,9 @@ export class BackgroundManager {
     private config: UserConfig = {
         resumeText: "",
         runInBackground: false,
+        useLocalGpt: false,
+        localGptEndpoint: "http://localhost:11434/api/generate",
+        localGptModel: "gemma:2b",
         query: [],
         platform: {
             indeed: true,
@@ -51,8 +54,8 @@ export class BackgroundManager {
         this.clearJobTimeout();
         console.log("[Manager] Automation started");
 
-        // Ensure GPT is open if not already
-        if (!this.gptTabId) {
+        // Ensure GPT is open if not already (only if not using local GPT)
+        if (!this.config.useLocalGpt && !this.gptTabId) {
             await browser.tabs.create({ 
                 url: 'https://chatgpt.com/?temporary-chat=true&bot=true',
                 active: true
@@ -263,6 +266,34 @@ export class BackgroundManager {
     }
 
     async handleProxyPrompt(payload: { prompt: string }, senderTabId?: number) {
+        if (this.config.useLocalGpt) {
+            console.log('[Manager] Using local GPT endpoint:', this.config.localGptEndpoint);
+            try {
+                const response = await fetch(this.config.localGptEndpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: this.config.localGptModel,
+                        prompt: payload.prompt,
+                        stream: false
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Local GPT request failed: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                console.log('[Manager] Local GPT Response:', data.response);
+                return data.response;
+            } catch (error) {
+                console.error('[Manager] Local GPT Error:', error);
+                throw error;
+            }
+        }
+
         if (!this.gptTabId) {
             console.error('[Manager] No GPT tab registered!');
             throw new Error('GPT tab not found');
@@ -276,8 +307,6 @@ export class BackgroundManager {
             payload: { prompt: payload.prompt },
             requestId: this.currentJob?.id,
         });
-
-
 
         console.log('[Manager] GPT Response:', { response });
 

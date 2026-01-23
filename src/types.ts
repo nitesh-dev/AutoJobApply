@@ -26,6 +26,9 @@ export interface Stats {
 export interface UserConfig {
     resumeText: string;
     runInBackground: boolean;
+    useLocalGpt: boolean;
+    localGptEndpoint: string;
+    localGptModel: string;
     query: {
         search: string;
         location: string;

@@ -113,6 +113,48 @@ export const SettingsPanel = ({
       </div>
 
       <div className="card">
+        <div className="section-lbl">
+          <BehaviorIcon />
+          CUSTOM GPT (Ollama)
+        </div>
+        <div className="gpt-settings">
+          <label className="platform-checkbox">
+            <input
+              type="checkbox"
+              checked={config.useLocalGpt}
+              onChange={(e) => updateConfig({ useLocalGpt: e.target.checked })}
+            />
+            Use Local GPT (Ollama)
+          </label>
+
+          {config.useLocalGpt && (
+            <div className="local-gpt-fields" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                <label style={{ fontSize: '0.7rem', color: '#94a3b8' }}>Endpoint</label>
+                <input
+                  type="text"
+                  placeholder="http://localhost:11434/api/generate"
+                  value={config.localGptEndpoint}
+                  onChange={(e) => updateConfig({ localGptEndpoint: e.target.value })}
+                  style={{ fontSize: '0.75rem' }}
+                />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                <label style={{ fontSize: '0.7rem', color: '#94a3b8' }}>Model</label>
+                <input
+                  type="text"
+                  placeholder="gemma:2b"
+                  value={config.localGptModel}
+                  onChange={(e) => updateConfig({ localGptModel: e.target.value })}
+                  style={{ fontSize: '0.75rem' }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="card">
         <div className="section-header-row">
           <div className="section-lbl" style={{ marginBottom: 0 }}>
             <SearchIcon />

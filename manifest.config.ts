@@ -19,6 +19,11 @@ export default defineManifest({
     "tabs",
     "storage",
   ],
+  host_permissions: [
+    "https://*.indeed.com/*",
+    "http://localhost/*",
+    "http://127.0.0.1/*"
+  ],
   content_scripts: [{
     js: ['src/content/main.tsx'],
     matches: ['https://*.indeed.com/*', "https://chatgpt.com/?temporary-chat=true&bot=true"],
