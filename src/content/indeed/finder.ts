@@ -3,6 +3,7 @@ import { api } from "@/services/extensionApi";
 import { BaseExecutor } from "../common/BaseExecutor";
 import { ExtensionMessage } from "@/types";
 import { delay } from "../utils";
+import { Jobs } from "./types";
 
 export class IndeedFinder extends BaseExecutor {
     private allJobsSelector = "#mosaic-provider-jobcards ul li"; // Slightly updated selector
@@ -32,17 +33,20 @@ export class IndeedFinder extends BaseExecutor {
 
             const jobElements = Array.from(document.querySelectorAll(this.allJobsSelector))
                 .filter(el => el.checkVisibility() && el.clientHeight > 0);
-            const jobs: any[] = [];
+            const jobs: Jobs[] = [];
 
             jobElements.forEach((el) => {
                 const titleEl = el.querySelector("h2.jobTitle span");
                 const linkEl = el.querySelector("a.jcs-JobTitle");
+                const id = linkEl?.getAttribute('data-jk');
+                const isEasilyApply = !!el.querySelector('[data-testid="indeedApply"]');
 
-                if (titleEl && linkEl) {
+                if (titleEl && linkEl && id && isEasilyApply) {
                     jobs.push({
                         title: (titleEl as HTMLElement).innerText,
                         jobUrl: (linkEl as HTMLAnchorElement).href,
-                        id: (linkEl as HTMLAnchorElement).getAttribute('data-jk')
+                        id,
+                        element: el as HTMLLIElement
                     });
                 }
             });

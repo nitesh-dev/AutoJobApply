@@ -26,6 +26,7 @@ export interface ParsedForm {
 export interface Jobs{
     title: string;
     jobUrl: string;
+    id: string;
     element: HTMLLIElement;
 
 }

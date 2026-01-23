@@ -59,6 +59,17 @@ export class BackgroundManager {
             });
         }
 
+        // move failed to pending for retry
+        for (const job of this.jobQueue) {
+            if (job.status === 'failed') {
+                job.status = 'pending';
+            }
+        }
+
+        await this.saveState();
+
+
+
         // Start processing if we have jobs
         this.processNextJob();
     }
@@ -70,7 +81,7 @@ export class BackgroundManager {
         for (const q of this.config.query) {
             if (this.config.platform.indeed && q.search.trim() !== '') {
                 for (let page = 0; page < maxPages; page++) {
-                    const indeedUrl = `https://www.indeed.com/jobs?q=${encodeURIComponent(q.search)}&l=${encodeURIComponent(q.location)}&start=${page * 10}&bot=true`;
+                    const indeedUrl = `https://in.indeed.com/jobs?q=${encodeURIComponent(q.search)}&l=${encodeURIComponent(q.location)}&start=${page * 10}&bot=true`;
                     await browser.tabs.create({ url: indeedUrl, active: !this.config.runInBackground });
                 }
             }
@@ -116,8 +127,8 @@ export class BackgroundManager {
 
     private async loadState() {
         const data = await browser.storage.local.get(['jobQueue', 'currentJob', 'config']);
-        // if (data.jobQueue) this.jobQueue = data.jobQueue as Job[];
-        // if (data.currentJob) this.currentJob = data.currentJob as Job;
+        if (data.jobQueue) this.jobQueue = data.jobQueue as Job[];
+        if (data.currentJob) this.currentJob = data.currentJob as Job;
         if (data.config) this.config = data.config as UserConfig;
     }
 
@@ -127,8 +138,8 @@ export class BackgroundManager {
 
     private async saveState() {
         await browser.storage.local.set({
-            // jobQueue: this.jobQueue,
-            // currentJob: this.currentJob,
+            jobQueue: this.jobQueue,
+            currentJob: this.currentJob,
             config: this.config
         });
     }
