@@ -44,8 +44,65 @@ export const SettingsPanel = ({
     updateConfig({ query: newQueries });
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert("File size exceeds 5MB limit");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string;
+      updateConfig({
+        resumeFile: {
+          name: file.name,
+          data: base64,
+        },
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeResumeFile = () => {
+    updateConfig({ resumeFile: undefined });
+  };
+
   return (
     <div className="settings-panel">
+      <div className="card">
+        <div className="section-lbl">
+          <ResumeIcon />
+          RESUME FILE (PDF/DOCX)
+        </div>
+        <div className="file-upload-section">
+          {config.resumeFile ? (
+            <div className="uploaded-file">
+              <span>{config.resumeFile.name}</span>
+              <button 
+                className="remove-file-btn" 
+                onClick={removeResumeFile}
+                title="Remove file"
+              >
+                <CloseIcon />
+              </button>
+            </div>
+          ) : (
+            <label className="file-input-label">
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx"
+                onChange={handleFileUpload}
+                style={{ display: "none" }}
+              />
+              <PlusIcon /> Select Resume
+            </label>
+          )}
+        </div>
+      </div>
+
       <div className="card">
         <div className="section-lbl">
           <ResumeIcon />

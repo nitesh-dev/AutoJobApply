@@ -57,7 +57,14 @@ export class IndeedForm extends BaseExecutor {
             }
 
             if (this.url.includes("resume-selection-module")) {
-                this.logger.info("On resume selection module, clicking continue...");
+                this.logger.info("On resume selection module, checking for resume upload...");
+                const config = await api.getConfig();
+                if (config.resumeFile) {
+                    this.logger.info("Resume file found in settings, attempting to upload...");
+                    await this.handleResumeUpload(config.resumeFile);
+                } else {
+                    this.logger.info("No resume file in settings, proceeding with default...");
+                }
                 await delay(4000);
             }
 
@@ -128,5 +135,42 @@ export class IndeedForm extends BaseExecutor {
     onUrlChange(_url: string) {
         this.url = _url;
         this.processForm();
+    }
+
+    private async handleResumeUpload(resumeFile: { name: string; data: string }) {
+        try {
+            // 1. Select the "Upload a resume" radio card
+            const uploadRadioCard = document.querySelector('[data-testid="resume-selection-file-resume-upload-radio-card"]');
+            if (uploadRadioCard) {
+                (uploadRadioCard as HTMLElement).click();
+                this.logger.info("Selected 'Upload a resume' option.");
+                await delay(1000);
+            }
+
+            // 2. Find the file input
+            const fileInput = document.querySelector('input[data-testid="resume-selection-file-resume-upload-radio-card-file-input"]') as HTMLInputElement;
+            if (!fileInput) {
+                this.logger.error("Could not find resume file input");
+                return;
+            }
+
+            // 3. Convert Base64 dataURI to File object
+            const response = await fetch(resumeFile.data);
+            const blob = await response.blob();
+            const file = new File([blob], resumeFile.name, { type: blob.type });
+
+            // 4. Use DataTransfer to simulate file selection
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            fileInput.files = dataTransfer.files;
+
+            // 5. Dispatch change event to trigger upload
+            fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+            
+            this.logger.success(`Resume "${resumeFile.name}" selected for upload.`);
+            await delay(3000); // Wait for upload to process
+        } catch (error: any) {
+            this.logger.error("Failed to upload resume", error);
+        }
     }
 }

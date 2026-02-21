@@ -23,8 +23,14 @@ export interface Stats {
     tabs: Record<string, { role: Role; platform?: string }>;
 }
 
+export interface ResumeFile {
+    name: string;
+    data: string; // Base64
+}
+
 export interface UserConfig {
     resumeText: string;
+    resumeFile?: ResumeFile;
     runInBackground: boolean;
     useLocalGpt: boolean;
     localGptEndpoint: string;

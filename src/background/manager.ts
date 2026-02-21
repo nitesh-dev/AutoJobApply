@@ -12,6 +12,7 @@ export class BackgroundManager {
 
     private config: UserConfig = {
         resumeText: "",
+        resumeFile: undefined,
         runInBackground: false,
         useLocalGpt: false,
         localGptEndpoint: "http://localhost:11434/api/generate",
