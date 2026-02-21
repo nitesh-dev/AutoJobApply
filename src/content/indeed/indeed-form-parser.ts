@@ -182,7 +182,7 @@ export class IndeedDynamicFormParser {
   }
 
   /** Parse and find the continue button */
-  private parseContinueButton(): FormField | undefined {
+  private async parseContinueButton(): Promise<FormField | undefined> {
     const buttons = this.root.querySelectorAll("button");
 
     console.log({buttons})
@@ -220,6 +220,13 @@ export class IndeedDynamicFormParser {
         const selector = this.buildSelector(htmlEl);
         if (!selector) continue;
         finalSelector = selector;
+      }
+
+
+      // wait until button is not disabled (some pages load the button first and enable it later)
+      while (htmlEl.hasAttribute("disabled")) {
+        await delay(1000);
+        console.log("Waiting for continue button to be enabled...");
       }
 
       return {
@@ -303,7 +310,7 @@ export class IndeedDynamicFormParser {
       }
 
       // Parse continue button
-      continueButton = this.parseContinueButton();
+      continueButton = await this.parseContinueButton();
 
       // If we found both fields and a continue button, we are likely done
       if (fields.length > 0 && continueButton) {
@@ -325,6 +332,31 @@ export class IndeedDynamicFormParser {
       await delay(2000);
       retries++;
     }
+
+
+
+
+    // // wait until continue button is not disabled
+    // if (continueButton) {
+    //   let continueEl: HTMLElement | null = null;
+    //   try {
+    //     continueEl = document.querySelector(continueButton.selector) as HTMLElement;
+    //   } catch (e) {
+    //     console.warn("Continue button selector is not valid:", continueButton.selector);
+    //   }
+
+    //   if (continueEl) {
+    //     let waitRetries = 0;
+    //     while (waitRetries < 10) {
+    //       if (!continueEl.hasAttribute("disabled")) {
+    //         break;
+    //       }
+    //       await delay(3000);
+    //       waitRetries++;
+    //     }
+    //   }
+    // }
+
 
     return {
       fields,
