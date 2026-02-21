@@ -1,4 +1,4 @@
-export type Role = 'GPT' | 'FINDER' | 'ANALYZER' | 'FORM_FILLER';
+export type Role = 'GPT' | 'FINDER' | 'ANALYZER' | 'FORM_FILLER' | 'HOME_FINDER';
 
 export interface Job {
     id: string;

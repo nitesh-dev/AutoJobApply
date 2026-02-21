@@ -55,6 +55,11 @@ export class BackgroundManager {
         this.clearJobTimeout();
         console.log("[Manager] Automation started");
 
+        // Notify all tabs that automation has started
+        for (const tabId of Object.keys(this.tabs)) {
+            browser.tabs.sendMessage(Number(tabId), { type: 'START_AUTOMATION' }).catch(() => {});
+        }
+
         // Ensure GPT is open if not already (only if not using local GPT)
         if (!this.config.useLocalGpt && !this.gptTabId) {
             await browser.tabs.create({ 
@@ -96,6 +101,12 @@ export class BackgroundManager {
         this.isRunning = false;
         this.clearJobTimeout();
         console.log("[Manager] Automation stopped");
+
+        // Notify all tabs that automation has stopped
+        for (const tabId of Object.keys(this.tabs)) {
+            browser.tabs.sendMessage(Number(tabId), { type: 'STOP_AUTOMATION' }).catch(() => {});
+        }
+
         // Optionally, close all tabs related to the automation
         for (const tabId of Object.keys(this.tabs)) {
             await browser.tabs.remove(Number(tabId));

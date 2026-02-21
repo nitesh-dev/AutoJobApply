@@ -3,6 +3,7 @@ import App from "@/content/views/App";
 import { api } from "@/services/extensionApi";
 import { Page } from "./automation/page";
 import { IndeedFinder } from "./indeed/finder";
+// import { IndeedHomeFinder } from "./indeed/home-finder";
 import { IndeedFinder2 } from "./indeed/_finder";
 import { IndeedAnalyzer } from "./indeed/analyzer";
 import { IndeedForm } from "./indeed/form";
@@ -11,6 +12,7 @@ import { Logger } from "./logger/logger";
 import browser from "webextension-polyfill";
 import { Role, ExtensionMessage } from "../types";
 import { BaseExecutor } from "./common/BaseExecutor";
+import { IndeedHomeFinder } from "./indeed/home-finder";
 
 const logger = new Logger();
 
@@ -27,6 +29,12 @@ async function init() {
     role = "GPT";
   } else if (url.includes("indeed.com/jobs") || url.includes("indeed.com/q-")) {
     role = "FINDER";
+    platform = "INDEED";
+  } else if (
+    (url.includes("in.indeed.com") || url.includes("www.indeed.com")) &&
+    (location.pathname === "/" || location.pathname === "")
+  ) {
+    role = "HOME_FINDER";
     platform = "INDEED";
   } else if (url.includes("indeed.com/viewjob")) {
     role = "ANALYZER";
@@ -55,6 +63,8 @@ async function init() {
       handler = new GPTExecutor();
     } else if (role === "FINDER") {
       handler = new IndeedFinder(page);
+    } else if (role === "HOME_FINDER") {
+      handler = new IndeedHomeFinder(page);
     } else if (role === "ANALYZER") {
       handler = new IndeedAnalyzer(page);
     } else if (role === "FORM_FILLER") {

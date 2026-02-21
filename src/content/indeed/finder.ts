@@ -13,14 +13,18 @@ export class IndeedFinder extends BaseExecutor {
     }
 
     init(url: string, options?: { noClick?: boolean }) {
-        // Auto-start scanning for now (prototype style)
-        this.scanJobs();
+        this.logger.info("IndeedFinder initialized.");
+        // Check if already running
+        api.getStats().then(stats => {
+            if (stats.isRunning) {
+                this.scanJobs();
+            }
+        });
     }
 
     handleMessage(message: ExtensionMessage) {
-        if (message.type === 'PROCESS_NEXT_JOB') {
-            // ... logic for next job
-            // alert("Processing next job");
+        if (message.type === 'START_AUTOMATION') {
+            this.scanJobs();
         }
     }
 
