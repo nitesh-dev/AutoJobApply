@@ -8,6 +8,7 @@ import { IndeedFinder2 } from "./indeed/_finder";
 import { IndeedAnalyzer } from "./indeed/analyzer";
 import { IndeedForm } from "./indeed/form";
 import { GPTExecutor } from "./gpt/executor";
+import { GeminiExecutor } from "./gemini/executor";
 import { Logger } from "./logger/logger";
 import browser from "webextension-polyfill";
 import { Role, ExtensionMessage } from "../types";
@@ -27,6 +28,8 @@ async function init() {
 
   if (url.includes("chatgpt.com") || url.includes("chat.openai.com")) {
     role = "GPT";
+  } else if (url.includes("gemini.google.com")) {
+    role = "GEMINI";
   } else if (url.includes("indeed.com/jobs") || url.includes("indeed.com/q-")) {
     role = "FINDER";
     platform = "INDEED";
@@ -61,6 +64,8 @@ async function init() {
 
     if (role === "GPT") {
       handler = new GPTExecutor();
+    } else if (role === "GEMINI") {
+      handler = new GeminiExecutor();
     } else if (role === "FINDER") {
       handler = new IndeedFinder(page);
     } else if (role === "HOME_FINDER") {

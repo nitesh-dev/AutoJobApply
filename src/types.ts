@@ -1,4 +1,4 @@
-export type Role = 'GPT' | 'FINDER' | 'ANALYZER' | 'FORM_FILLER' | 'HOME_FINDER';
+export type Role = 'GPT' | 'GEMINI' | 'FINDER' | 'ANALYZER' | 'FORM_FILLER' | 'HOME_FINDER';
 
 export interface Job {
     id: string;
@@ -35,6 +35,7 @@ export interface UserConfig {
     useLocalGpt: boolean;
     localGptEndpoint: string;
     localGptModel: string;
+    aiProvider: 'gpt' | 'gemini';
     query: {
         search: string;
         location: string;
@@ -54,7 +55,9 @@ export type MessageMap = {
     'REGISTER_TAB': RegisterTabPayload;
     'JOB_LIST_FOUND': { jobs: any[] };
     'GPT_READY': void;
+    'GEMINI_READY': void;
     'PROMPT_GPT': { prompt: string, requestId?: string }; // Direct to GPT tab
+    'PROMPT_GEMINI': { prompt: string, requestId?: string }; // Direct to Gemini tab
     'PROXY_PROMPT_GPT': { prompt: string }; // From content script to background, returns string
     'REPORT_JOB_STATUS': { status: 'analyzing' | 'applying' | 'completed' | 'skipped' | 'failed', message?: string };
     'PROCESS_NEXT_JOB': void;

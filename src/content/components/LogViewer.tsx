@@ -17,7 +17,7 @@ export function LogViewer({
   filterLevels
 }: LogViewerProps) {
   const [logs, setLogs] = useState<LogEntry[]>([]);
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [selectedLog, setSelectedLog] = useState<string | null>(null);
   const logListRef = useRef<HTMLDivElement>(null);
 

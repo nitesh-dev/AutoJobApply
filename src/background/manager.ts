@@ -17,6 +17,7 @@ export class BackgroundManager {
         useLocalGpt: false,
         localGptEndpoint: "http://localhost:11434/api/generate",
         localGptModel: "gemma:2b",
+        aiProvider: 'gpt',
         query: [],
         platform: {
             indeed: true,
@@ -26,6 +27,7 @@ export class BackgroundManager {
 
     // Track special tabs
     private gptTabId: number | null = null;
+    private geminiTabId: number | null = null;
     private activeJobTabId: number | null = null;
 
     private stats = {
@@ -60,12 +62,19 @@ export class BackgroundManager {
             browser.tabs.sendMessage(Number(tabId), { type: 'START_AUTOMATION' }).catch(() => {});
         }
 
-        // Ensure GPT is open if not already (only if not using local GPT)
-        if (!this.config.useLocalGpt && !this.gptTabId) {
-            await browser.tabs.create({ 
-                url: 'https://chatgpt.com/?temporary-chat=true&bot=true',
-                active: true
-            });
+        // Ensure AI provider is open if not already (only if not using local GPT)
+        if (!this.config.useLocalGpt) {
+            if (this.config.aiProvider === 'gpt' && !this.gptTabId) {
+                await browser.tabs.create({ 
+                    url: 'https://chatgpt.com/?temporary-chat=true&bot=true',
+                    active: true
+                });
+            } else if (this.config.aiProvider === 'gemini' && !this.geminiTabId) {
+                await browser.tabs.create({ 
+                    url: 'https://gemini.google.com/app?bot=true',
+                    active: true
+                });
+            }
         }
 
         // move failed to pending for retry
@@ -167,6 +176,10 @@ export class BackgroundManager {
             this.gptTabId = tabId;
         }
 
+        if (payload.role === 'GEMINI') {
+            this.geminiTabId = tabId;
+        }
+
         return true
     }
 
@@ -177,6 +190,7 @@ export class BackgroundManager {
         }
 
         if (this.gptTabId === tabId) this.gptTabId = null;
+        if (this.geminiTabId === tabId) this.geminiTabId = null;
 
         if (this.activeJobTabId === tabId) {
             console.log(`[Manager] Active job tab ${tabId} closed.`);
@@ -306,21 +320,25 @@ export class BackgroundManager {
             }
         }
 
-        if (!this.gptTabId) {
-            console.error('[Manager] No GPT tab registered!');
-            throw new Error('GPT tab not found');
+        const provider = this.config.aiProvider;
+        const targetTabId = provider === 'gpt' ? this.gptTabId : this.geminiTabId;
+        const promptMessageType = provider === 'gpt' ? 'PROMPT_GPT' : 'PROMPT_GEMINI';
+
+        if (!targetTabId) {
+            console.error(`[Manager] No ${provider.toUpperCase()} tab registered!`);
+            throw new Error(`${provider.toUpperCase()} tab not found`);
         }
 
-        // Focus GPT Tab
-        await browser.tabs.update(this.gptTabId, { active: !this.config.runInBackground });
+        // Focus AI Tab
+        await browser.tabs.update(targetTabId, { active: !this.config.runInBackground });
 
-        const response = await browser.tabs.sendMessage(this.gptTabId, {
-            type: 'PROMPT_GPT',
+        const response = await browser.tabs.sendMessage(targetTabId, {
+            type: promptMessageType,
             payload: { prompt: payload.prompt },
             requestId: this.currentJob?.id,
         });
 
-        console.log('[Manager] GPT Response:', { response });
+        console.log(`[Manager] ${provider.toUpperCase()} Response:`, { response });
 
         if (senderTabId && this.tabs[senderTabId]) {
             await browser.tabs.update(senderTabId, { active: !this.config.runInBackground });

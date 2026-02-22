@@ -26,7 +26,12 @@ export default defineManifest({
   ],
   content_scripts: [{
     js: ['src/content/main.tsx'],
-    matches: ['https://*.indeed.com/*', "https://chatgpt.com/?temporary-chat=true&bot=true"],
+    matches: [
+      'https://*.indeed.com/*', 
+      "https://chatgpt.com/?temporary-chat=true&bot=true",
+      "https://chat.openai.com/*",
+      "https://gemini.google.com/app?bot=true"
+    ],
     run_at: 'document_end',
   }],
   side_panel: {

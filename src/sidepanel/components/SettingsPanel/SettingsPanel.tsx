@@ -172,6 +172,35 @@ export const SettingsPanel = ({
       <div className="card">
         <div className="section-lbl">
           <BehaviorIcon />
+          AI PROVIDER
+        </div>
+        <div className="ai-provider-selector" style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+          <label className="platform-checkbox" style={{ cursor: 'pointer' }}>
+            <input
+              type="radio"
+              name="aiProvider"
+              value="gpt"
+              checked={config.aiProvider === 'gpt'}
+              onChange={() => updateConfig({ aiProvider: 'gpt' })}
+            />
+            ChatGPT
+          </label>
+          <label className="platform-checkbox" style={{ cursor: 'pointer' }}>
+            <input
+              type="radio"
+              name="aiProvider"
+              value="gemini"
+              checked={config.aiProvider === 'gemini'}
+              onChange={() => updateConfig({ aiProvider: 'gemini' })}
+            />
+            Gemini
+          </label>
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="section-lbl">
+          <BehaviorIcon />
           CUSTOM GPT (Ollama)
         </div>
         <div className="gpt-settings">
