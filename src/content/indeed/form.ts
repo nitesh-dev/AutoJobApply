@@ -112,6 +112,8 @@ export class IndeedForm extends BaseExecutor {
 
                 if (this.url.includes("form/review-module")) {
                     this.logger.success("Application form submitted successfully!");
+
+                    await delay(3000); // Wait for potential navigation or processing after submission
                     await api.reportJobStatus('completed');
 
                 }

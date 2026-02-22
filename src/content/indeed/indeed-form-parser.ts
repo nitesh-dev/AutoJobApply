@@ -262,7 +262,7 @@ export class IndeedDynamicFormParser {
     let continueButton: FormField | undefined;
     let retries = 0;
 
-    while (retries < 2) {
+    while (retries < 4) {
       const elements = this.root.querySelectorAll(
         "input:not([type='hidden']), textarea, select, [role='combobox']"
       );
@@ -329,7 +329,7 @@ export class IndeedDynamicFormParser {
         console.log(`Continue button found but no fields, retrying once more... (${retries + 1}/3)`);
       }
 
-      await delay(2000);
+      await delay(3000);
       retries++;
     }
 

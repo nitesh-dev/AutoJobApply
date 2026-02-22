@@ -125,4 +125,5 @@ async function init() {
   await start();
 }
 
-setTimeout(init, 2000); // Give a small buffer
+// setTimeout(init, 2000); // Give a small buffer
+init()
