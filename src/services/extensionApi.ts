@@ -42,6 +42,9 @@ export const api = {
     startAutomation: (): Promise<void> =>
         sendMessage('START_AUTOMATION', undefined),
 
+    startAutomationInWindow: (): Promise<void> =>
+        sendMessage('START_AUTOMATION_WINDOW', undefined),
+
     stopAutomation: (): Promise<void> =>
         sendMessage('STOP_AUTOMATION', undefined),
 

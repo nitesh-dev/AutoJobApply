@@ -76,6 +76,15 @@ export default function App() {
     }
   };
 
+  const startAutomationInWindow = async () => {
+    try {
+      await api.startAutomationInWindow();
+      fetchStats();
+    } catch (error) {
+      console.error("Failed to start automation in window:", error);
+    }
+  };
+
   const clearCache = async () => {
     if (
       !confirm(
@@ -127,6 +136,7 @@ export default function App() {
           <AutomationControls
             isRunning={stats.isRunning}
             onToggleAutomation={toggleAutomation}
+            onStartInWindow={startAutomationInWindow}
             onFetchJobs={fetchJobs}
           />
           <JobQueue jobQueue={stats.jobQueue || []} />

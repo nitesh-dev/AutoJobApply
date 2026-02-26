@@ -29,6 +29,7 @@ export class BackgroundManager {
     private gptTabId: number | null = null;
     private geminiTabId: number | null = null;
     private activeJobTabId: number | null = null;
+    private automationWindowId: number | null = null;
 
     private stats = {
         totalFound: 0,
@@ -67,12 +68,14 @@ export class BackgroundManager {
             if (this.config.aiProvider === 'gpt' && !this.gptTabId) {
                 await browser.tabs.create({ 
                     url: 'https://chatgpt.com/?temporary-chat=true&bot=true',
-                    active: true
+                    active: true,
+                    windowId: this.automationWindowId ?? undefined
                 });
             } else if (this.config.aiProvider === 'gemini' && !this.geminiTabId) {
                 await browser.tabs.create({ 
                     url: 'https://gemini.google.com/app?bot=true',
-                    active: true
+                    active: true,
+                    windowId: this.automationWindowId ?? undefined
                 });
             }
         }
@@ -92,6 +95,16 @@ export class BackgroundManager {
         this.processNextJob();
     }
 
+    async startAutomationWindow() {
+        console.log("[Manager] Starting automation in a new window");
+        const window = await browser.windows.create({
+            focused: true,
+            type: 'normal'
+        });
+        this.automationWindowId = window.id ?? null;
+        await this.startAutomation();
+    }
+
     async fetchJobs() {
         console.log("[Manager] Fetching jobs...");
         
@@ -100,7 +113,11 @@ export class BackgroundManager {
             if (this.config.platform.indeed && q.search.trim() !== '') {
                 for (let page = 0; page < maxPages; page++) {
                     const indeedUrl = `https://in.indeed.com/jobs?q=${encodeURIComponent(q.search)}&l=${encodeURIComponent(q.location)}&start=${page * 10}&bot=true`;
-                    await browser.tabs.create({ url: indeedUrl, active: !this.config.runInBackground });
+                    await browser.tabs.create({ 
+                        url: indeedUrl, 
+                        active: !this.config.runInBackground,
+                        windowId: this.automationWindowId ?? undefined
+                    });
                 }
             }
         }
@@ -109,6 +126,7 @@ export class BackgroundManager {
     async stopAutomation() {
         this.isRunning = false;
         this.clearJobTimeout();
+        this.automationWindowId = null;
         console.log("[Manager] Automation stopped");
 
         // Notify all tabs that automation has stopped
@@ -130,6 +148,14 @@ export class BackgroundManager {
         this.config = { ...this.config, ...newConfig };
         await this.saveState();
         return this.config;
+    }
+
+    handleWindowRemoved(windowId: number) {
+        if (this.automationWindowId === windowId) {
+            console.log("[Manager] Automation window closed. Stopping automation.");
+            this.automationWindowId = null;
+            this.stopAutomation();
+        }
     }
 
     async clearCache() {
@@ -265,7 +291,11 @@ export class BackgroundManager {
             this.startJobTimeout();
 
             // Open the job URL
-            const tab = await browser.tabs.create({ url: nextJob.url, active: !this.config.runInBackground });
+            const tab = await browser.tabs.create({ 
+                url: nextJob.url, 
+                active: !this.config.runInBackground,
+                windowId: this.automationWindowId ?? undefined
+            });
             this.activeJobTabId = tab.id ?? null;
             // The new tab will load, recognize itself as ANALYZER, and send REGISTER_TAB
             

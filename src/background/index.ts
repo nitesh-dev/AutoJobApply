@@ -42,6 +42,9 @@ browser.runtime.onMessage.addListener((msg: unknown, sender: browser.Runtime.Mes
                 case 'START_AUTOMATION':
                     data = await manager.startAutomation();
                     break;
+                case 'START_AUTOMATION_WINDOW':
+                    data = await manager.startAutomationWindow();
+                    break;
                 case 'STOP_AUTOMATION':
                     data = await manager.stopAutomation();
                     break;
@@ -64,4 +67,8 @@ browser.runtime.onMessage.addListener((msg: unknown, sender: browser.Runtime.Mes
 
 browser.tabs.onRemoved.addListener((tabId) => {
     manager.unregisterTab(tabId);
+});
+
+browser.windows.onRemoved.addListener((windowId) => {
+    manager.handleWindowRemoved(windowId);
 });
