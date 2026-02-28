@@ -22,7 +22,8 @@ export class BackgroundManager {
         platform: {
             indeed: true,
             linkedin: false
-        }
+        },
+        locationKeywords: []
     };
 
     // Track special tabs
@@ -52,11 +53,29 @@ export class BackgroundManager {
         };
     }
 
-    async startAutomation() {
+    async startAutomation(browserId: number | null = null) {
         this.isRunning = true;
         this.currentJob = null;
         this.clearJobTimeout();
         console.log("[Manager] Automation started");
+
+
+        if(browserId) {
+            this.automationWindowId = browserId;
+        }else{
+            // get current window and use it, otherwise create new
+            try {
+                const currentWindow = await browser.windows.getCurrent();
+                if (currentWindow && currentWindow.id) {
+                    this.automationWindowId = currentWindow.id;
+                    console.log(`[Manager] Using current window for automation: ${this.automationWindowId}`);
+                } else {
+                    throw new Error("No current window found");
+                }
+            } catch (error) {
+                console.warn("[Manager] Could not get current window", error);
+            }
+        }
 
         // Notify all tabs that automation has started
         for (const tabId of Object.keys(this.tabs)) {
@@ -101,8 +120,7 @@ export class BackgroundManager {
             focused: true,
             type: 'normal'
         });
-        this.automationWindowId = window.id ?? null;
-        await this.startAutomation();
+        await this.startAutomation(window.id);
     }
 
     async fetchJobs() {

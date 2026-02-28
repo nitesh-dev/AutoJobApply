@@ -44,6 +44,7 @@ export interface UserConfig {
         indeed: boolean;
         linkedin: boolean;
     };
+    locationKeywords: string[];
 }
 
 export interface RegisterTabPayload {

@@ -39,17 +39,35 @@ export class IndeedFinder extends BaseExecutor {
                 .filter(el => el.checkVisibility() && el.clientHeight > 0);
             const jobs: Jobs[] = [];
 
+            const config = await api.getConfig();
+            const locationKeywords = config.locationKeywords || [];
+
             jobElements.forEach((el) => {
                 const titleEl = el.querySelector("h2.jobTitle span");
                 const linkEl = el.querySelector("a.jcs-JobTitle");
                 const id = linkEl?.getAttribute('data-jk');
                 const isEasilyApply = !!el.querySelector('[data-testid="indeedApply"]');
+                const locationEl = el.querySelector('[data-testid="text-location"]');
+                const locationText = (locationEl as HTMLElement)?.innerText.trim() || "";
 
                 if (titleEl && linkEl && id && isEasilyApply) {
+                    // Filter by location keywords
+                    if (locationKeywords.length > 0) {
+                        const matches = locationKeywords.some(keyword => 
+                            locationText.toLowerCase().includes(keyword.toLowerCase())
+                        );
+                        if (!matches) {
+                            this.logger.info(`Skipping job ${id} - location "${locationText}" does not match keywords.`);
+                            (el as HTMLElement).style.opacity = '0.3';
+                            return;
+                        }
+                    }
+
                     jobs.push({
                         title: (titleEl as HTMLElement).innerText,
                         jobUrl: (linkEl as HTMLAnchorElement).href,
                         id,
+                        location: locationText,
                         element: el as HTMLLIElement
                     });
                 }

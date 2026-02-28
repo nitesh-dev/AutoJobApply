@@ -27,6 +27,7 @@ export interface Jobs{
     title: string;
     jobUrl: string;
     id: string;
+    location?: string;
     element: HTMLLIElement;
 
 }

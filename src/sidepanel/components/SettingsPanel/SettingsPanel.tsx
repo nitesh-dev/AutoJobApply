@@ -44,6 +44,11 @@ export const SettingsPanel = ({
     updateConfig({ query: newQueries });
   };
 
+  const handleLocationKeywordsChange = (value: string) => {
+    const keywords = value.split(",").map((k) => k.trim()).filter((k) => k !== "");
+    updateConfig({ locationKeywords: keywords });
+  };
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -237,6 +242,27 @@ export const SettingsPanel = ({
               </div>
             </div>
           )}
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="section-header-row">
+          <div className="section-lbl" style={{ marginBottom: 0 }}>
+            <PlatformIcon />
+            LOCATION FILTER
+          </div>
+        </div>
+        <div className="location-filter-section" style={{ marginTop: '0.5rem' }}>
+          <input
+            type="text"
+            placeholder="e.g. Remote, Hybrid, Bangalore (comma separated)"
+            defaultValue={config.locationKeywords?.join(", ")}
+            onBlur={(e) => handleLocationKeywordsChange(e.target.value)}
+            style={{ width: '100%', fontSize: '0.8rem' }}
+          />
+          <p style={{ fontSize: '0.65rem', color: '#94a3b8', marginTop: '0.3rem' }}>
+            Only apply to jobs matching these location keywords. Leave empty to disable.
+          </p>
         </div>
       </div>
 
