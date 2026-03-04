@@ -18,10 +18,12 @@ export class IndeedHomeFinder extends BaseExecutor {
         this.logger.info("IndeedHomeFinder initialized.");
         
         // Check if automation is already running
-        const stats = await api.getStats();
-        if (stats.isRunning) {
-            this.startScanning();
-        }
+        // const stats = await api.getStats();
+        // if (stats.isRunning) {
+        //     this.startScanning();
+        // }
+
+        this.startScanning();
     }
 
     async handleMessage(message: ExtensionMessage) {
