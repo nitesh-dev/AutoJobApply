@@ -52,60 +52,71 @@ async function init() {
     return;
   }
 
-  const start = async (isManual = false) => {
-    logger.info(`AutoJobApply: Registering as ${role}`);
+  // Register the tab and get initial config
+  logger.info(`AutoJobApply: Registering as ${role}`);
 
-    // Register Tab
-    await api.registerTab({ role: role!, platform });
+  // Register Tab
+  await api.registerTab({ role: role!, platform });
 
-    // Initialize specific logic
-    const page = new Page();
-    let handler: BaseExecutor | null = null;
+  // Initialize specific logic
+  const page = new Page();
+  let handler: BaseExecutor | null = null;
 
-    if (role === "GPT") {
-      handler = new GPTExecutor();
-    } else if (role === "GEMINI") {
-      handler = new GeminiExecutor();
-    } else if (role === "FINDER") {
-      handler = new IndeedFinder(page);
-    } else if (role === "HOME_FINDER") {
-      handler = new IndeedHomeFinder(page);
-    } else if (role === "ANALYZER") {
-      handler = new IndeedAnalyzer(page);
-    } else if (role === "FORM_FILLER") {
-      handler = new IndeedForm(page);
-    }
+  if (role === "GPT") {
+    handler = new GPTExecutor();
+  } else if (role === "GEMINI") {
+    handler = new GeminiExecutor();
+  } else if (role === "FINDER") {
+    handler = new IndeedFinder(page);
+  } else if (role === "HOME_FINDER") {
+    handler = new IndeedHomeFinder(page);
+  } else if (role === "ANALYZER") {
+    handler = new IndeedAnalyzer(page);
+  } else if (role === "FORM_FILLER") {
+    handler = new IndeedForm(page);
+  }
 
+  if (handler) {
+    handler.onInit();
+  }
+
+  // Centralized message listener
+  browser.runtime.onMessage.addListener((message: any) => {
+    logger.info("Content received message:", message);
     if (handler) {
-      handler.init(url, { noClick: isManual });
+      return handler.handleMessage(message as ExtensionMessage);
+    }
+  });
+
+  setInterval(() => {
+    if (location.href !== url) {
+      url = location.href;
+      logger.debug(`URL changed to: ${url}`);
+      if (handler && handler.onUrlChange) {
+        handler.onUrlChange(url);
+      }
+    }
+  }, 1000);
+
+  console.log("AutoJobApply: Content script initialized.");
+
+  const start = async (isManual = false) => {
+    logger.info(
+      `AutoJobApply: Starting automation${
+        isManual ? " (manual bypass)" : ""
+      }...`
+    );
+    if (handler) {
+      handler.onBegin(url, { isManual });
     }
 
     // Mount UI
-    const root = document.createElement("div");
-    root.id = "auto-job-apply-root";
-    document.body.appendChild(root);
-
-    createRoot(root).render(<App />);
-
-    // Centralized message listener
-    browser.runtime.onMessage.addListener((message: any) => {
-      logger.info("Content received message:", message);
-      if (handler) {
-        return handler.handleMessage(message as ExtensionMessage);
-      }
-    });
-
-    setInterval(() => {
-      if (location.href !== url) {
-        url = location.href;
-        logger.debug(`URL changed to: ${url}`);
-        if (handler && handler.onUrlChange) {
-          handler.onUrlChange(url);
-        }
-      }
-    }, 1000);
-
-    console.log("AutoJobApply: Content script initialized.");
+    if (!document.getElementById("auto-job-apply-root")) {
+      const root = document.createElement("div");
+      root.id = "auto-job-apply-root";
+      document.body.appendChild(root);
+      createRoot(root).render(<App />);
+    }
   };
 
   if (!url.includes("bot=true")) {
@@ -117,7 +128,7 @@ async function init() {
       const btn = document.createElement("button");
       btn.innerText = "Start Automation (Bypass)";
       btn.style.cssText =
-        "position:fixed;top:20px;right:20px;z-index:999999;padding:10px 20px;background:#4A90E2;color:white;border:none;border-radius:5px;cursor:pointer;box-shadow: 0 2px 10px rgba(0,0,0,0.2);font-weight:bold;";
+        "position:fixed;bottom:20px;right:20px;z-index:999999;padding:10px 20px;background:#4A90E2;color:white;border:none;border-radius:5px;cursor:pointer;box-shadow: 0 2px 10px rgba(0,0,0,0.2);font-weight:bold;";
       btn.onclick = () => {
         btn.remove();
         start(true);
@@ -131,4 +142,4 @@ async function init() {
 }
 
 // setTimeout(init, 2000); // Give a small buffer
-init()
+init();

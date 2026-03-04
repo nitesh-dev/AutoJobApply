@@ -54,6 +54,12 @@ browser.runtime.onMessage.addListener((msg: unknown, sender: browser.Runtime.Mes
                 case 'CLEAR_CACHE':
                     data = await manager.clearCache();
                     break;
+                case 'ADD_MANUAL_JOB':
+                    data = await manager.handleManualJob((message.payload as any).job);
+                    break;
+                case 'REMOVE_MANUAL_JOB':
+                    data = await manager.handleRemoveManualJob((message.payload as any).jobId);
+                    break;
                 default:
                     return { success: false, error: 'Unknown message type' };
             }

@@ -5,10 +5,14 @@ export abstract class BaseExecutor {
 
     protected logger: Logger = new Logger();
 
+    onInit() { 
+        console.log("BaseExecutor onInit called. Override this method if you need to run code before role is determined.");
+    }
+
     /**
      * Initialize the executor. Called when the page role is determined.
      */
-    abstract init(url: string, options?: { noClick?: boolean }): void | Promise<void>;
+    abstract onBegin(url: string, options?: { isManual?: boolean }): void | Promise<void>;
 
     /**
      * Handle incoming messages from the background script.
@@ -20,4 +24,5 @@ export abstract class BaseExecutor {
      * Optional: Handle URL changes within the same tab (for SPAs).
      */
     onUrlChange?(url: string): void;
+    
 }

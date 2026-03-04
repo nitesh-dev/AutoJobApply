@@ -275,6 +275,34 @@ export class BackgroundManager {
         this.processNextJob();
     }
 
+    async handleManualJob(job: Job) {
+        console.log(`[Manager] Manually adding job: ${job.title} (${job.id})`);
+        if (!this.jobQueue.find(q => q.id === job.id)) {
+            this.jobQueue.push({ ...job, status: 'pending' });
+            this.stats.totalFound++;
+            await this.saveState();
+            this.processNextJob();
+        }
+    }
+
+    async handleRemoveManualJob(jobId: string) {
+        console.log(`[Manager] Manually removing job ID: ${jobId}`);
+        const index = this.jobQueue.findIndex(q => q.id === jobId);
+        if (index !== -1) {
+            const job = this.jobQueue[index];
+            // If it's the current job being processed, we might want to handle it specially
+            // but for now, just removing from queue if pending or failed
+            if (job.status === 'pending' || job.status === 'failed') {
+                this.jobQueue.splice(index, 1);
+                this.stats.totalFound--;
+                await this.saveState();
+                console.log(`[Manager] Job ${jobId} removed from queue.`);
+            } else {
+                console.log(`[Manager] Job ${jobId} is currently being processed or already finished. Cannot remove.`);
+            }
+        }
+    }
+
     async processNextJob() {
         if (!this.isRunning) {
             console.log('[Manager] Automation is stopped. Skipping next job.');

@@ -10,7 +10,7 @@ export class GeminiExecutor extends BaseExecutor {
 
     private executionQueue: Promise<void> = Promise.resolve();
 
-    init(url: string, options?: { noClick?: boolean }) {
+    onBegin(url: string, options?: { isManual?: boolean }) {
         this.logger.info("Gemini Executor initialized...");
         
         // Let background know we are ready

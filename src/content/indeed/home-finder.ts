@@ -1,12 +1,11 @@
 import { Page } from "../automation/page";
 import { api } from "@/services/extensionApi";
-import { BaseExecutor } from "../common/BaseExecutor";
+import { IndeedUIEnhancer } from "./BaseIndeedEnhancer";
 import { ExtensionMessage } from "@/types";
 import { delay } from "../utils";
 import { Jobs } from "./types";
 
-export class IndeedHomeFinder extends BaseExecutor {
-    private allJobsSelector = "#mosaic-provider-jobcards ul li";
+export class IndeedHomeFinder extends IndeedUIEnhancer {
     private processedJobIds = new Set<string>();
     private isScanning = false;
 
@@ -14,24 +13,18 @@ export class IndeedHomeFinder extends BaseExecutor {
         super();
     }
 
-    async init(url: string, options?: { noClick?: boolean }) {
+    async onBegin(url: string, options?: { isManual?: boolean }) {
         this.logger.info("IndeedHomeFinder initialized.");
         
-        // Check if automation is already running
-        // const stats = await api.getStats();
-        // if (stats.isRunning) {
-        //     this.startScanning();
-        // }
-
         this.startScanning();
     }
 
     async handleMessage(message: ExtensionMessage) {
-        // if (message.type === 'START_AUTOMATION') {
-        //     this.startScanning();
-        // } else if (message.type === 'STOP_AUTOMATION') {
-        //     this.isScanning = false;
-        // }
+        if (message.type === 'START_AUTOMATION') {
+            this.startScanning();
+        } else if (message.type === 'STOP_AUTOMATION') {
+            this.isScanning = false;
+        }
     }
 
     private async startScanning() {
@@ -58,36 +51,29 @@ export class IndeedHomeFinder extends BaseExecutor {
             
             const config = await api.getConfig();
             const locationKeywords = config.locationKeywords || [];
-            const newJobs: Jobs[] = [];
+            const newJobs: { title: string; jobUrl: string; id: string; location: string }[] = [];
 
             jobElements.forEach((el) => {
-                const titleEl = el.querySelector("h2.jobTitle span") || el.querySelector("h2.jobTitle a span");
-                const linkEl = el.querySelector("a.jcs-JobTitle");
-                const id = linkEl?.getAttribute('data-jk');
-                const isEasilyApply = !!el.querySelector('[data-testid="indeedApply"]');
-                const locationEl = el.querySelector('[data-testid="text-location"]');
-                const locationText = (locationEl as HTMLElement)?.innerText.trim() || "";
+                const job = this.getJobData(el);
+                if (!job) return;
 
-                if (titleEl && linkEl && id && isEasilyApply && !this.processedJobIds.has(id)) {
+                if (!this.processedJobIds.has(job.id)) {
                     // Filter by location keywords
                     if (locationKeywords.length > 0) {
                         const matches = locationKeywords.some(keyword => 
-                            locationText.toLowerCase().includes(keyword.toLowerCase())
+                            job.location.toLowerCase().includes(keyword.toLowerCase())
                         );
                         if (!matches) {
-                            this.logger.info(`Skipping job ${id} - location "${locationText}" does not match keywords.`);
-                            (el as HTMLElement).style.opacity = '0.3';
                             return;
                         }
                     }
 
-                    this.processedJobIds.add(id);
+                    this.processedJobIds.add(job.id);
                     newJobs.push({
-                        title: (titleEl as HTMLElement).innerText.trim(),
-                        jobUrl: (linkEl as HTMLAnchorElement).href,
-                        id,
-                        location: locationText,
-                        element: el as HTMLLIElement
+                        title: job.title,
+                        jobUrl: job.jobUrl,
+                        id: job.id,
+                        location: job.location,
                     });
                 }
             });

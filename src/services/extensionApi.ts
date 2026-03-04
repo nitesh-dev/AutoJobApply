@@ -53,6 +53,12 @@ export const api = {
 
     clearCache: (): Promise<boolean> =>
         sendMessage('CLEAR_CACHE', undefined),
+
+    addManualJob: (job: any): Promise<void> =>
+        sendMessage('ADD_MANUAL_JOB', { job }),
+
+    removeManualJob: (jobId: string): Promise<void> =>
+        sendMessage('REMOVE_MANUAL_JOB', { jobId }),
 };
 
 

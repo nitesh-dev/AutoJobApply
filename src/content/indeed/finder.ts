@@ -1,27 +1,23 @@
 import { Page } from "../automation/page";
 import { api } from "@/services/extensionApi";
-import { BaseExecutor } from "../common/BaseExecutor";
+import { IndeedUIEnhancer } from "./BaseIndeedEnhancer";
 import { ExtensionMessage } from "@/types";
 import { delay } from "../utils";
 import { Jobs } from "./types";
 
-export class IndeedFinder extends BaseExecutor {
-    private allJobsSelector = "#mosaic-provider-jobcards ul li"; // Slightly updated selector
-
+export class IndeedFinder extends IndeedUIEnhancer {
     constructor(private page: Page) {
         super();
     }
 
-    init(url: string, options?: { noClick?: boolean }) {
+    onBegin(url: string, options?: { isManual?: boolean }) {
         this.logger.info("IndeedFinder initialized.");
         // Check if already running
         this.scanJobs();
     }
 
     handleMessage(message: ExtensionMessage) {
-        // if (message.type === 'START_AUTOMATION') {
-        //     this.scanJobs();
-        // }
+        // ...existing code...
     }
 
     async scanJobs() {
@@ -33,40 +29,31 @@ export class IndeedFinder extends BaseExecutor {
 
             const jobElements = Array.from(document.querySelectorAll(this.allJobsSelector))
                 .filter(el => el.checkVisibility() && el.clientHeight > 0);
-            const jobs: Jobs[] = [];
+            const jobs: { title: string; jobUrl: string; id: string; location: string }[] = [];
 
             const config = await api.getConfig();
             const locationKeywords = config.locationKeywords || [];
 
             jobElements.forEach((el) => {
-                const titleEl = el.querySelector("h2.jobTitle span");
-                const linkEl = el.querySelector("a.jcs-JobTitle");
-                const id = linkEl?.getAttribute('data-jk');
-                const isEasilyApply = !!el.querySelector('[data-testid="indeedApply"]');
-                const locationEl = el.querySelector('[data-testid="text-location"]');
-                const locationText = (locationEl as HTMLElement)?.innerText.trim() || "";
+                const job = this.getJobData(el);
+                if (!job) return;
 
-                if (titleEl && linkEl && id && isEasilyApply) {
-                    // Filter by location keywords
-                    if (locationKeywords.length > 0) {
-                        const matches = locationKeywords.some(keyword =>
-                            locationText.toLowerCase().includes(keyword.toLowerCase())
-                        );
-                        if (!matches) {
-                            this.logger.info(`Skipping job ${id} - location "${locationText}" does not match keywords.`);
-                            (el as HTMLElement).style.opacity = '0.3';
-                            return;
-                        }
+                // Filter by location keywords
+                if (locationKeywords.length > 0) {
+                    const matches = locationKeywords.some(keyword =>
+                        job.location.toLowerCase().includes(keyword.toLowerCase())
+                    );
+                    if (!matches) {
+                        return;
                     }
-
-                    jobs.push({
-                        title: (titleEl as HTMLElement).innerText,
-                        jobUrl: (linkEl as HTMLAnchorElement).href,
-                        id,
-                        location: locationText,
-                        element: el as HTMLLIElement
-                    });
                 }
+
+                jobs.push({
+                    title: job.title,
+                    jobUrl: job.jobUrl,
+                    id: job.id,
+                    location: job.location,
+                });
             });
 
             this.logger.success(`Found ${jobs.length} jobs.`);

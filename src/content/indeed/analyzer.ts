@@ -11,7 +11,7 @@ export class IndeedAnalyzer extends BaseExecutor {
         super();
     }
 
-    init(url: string, options?: { noClick?: boolean }) {
+    onBegin(url: string, options?: { isManual?: boolean }) {
         // Wait for page to be ready, then extract
         this.analyze();
     }

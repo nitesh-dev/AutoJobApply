@@ -14,7 +14,7 @@ export class GPTExecutor extends BaseExecutor {
     private readonly selectorLastAssistantText = "article[data-turn='assistant']:last-of-type [data-message-author-role='assistant']";
     private executionQueue: Promise<void> = Promise.resolve();
 
-    init(url: string, options?: { noClick?: boolean }) {
+    onBegin(url: string, options?: { isManual?: boolean }) {
         this.logger.info("GPT Executor initialized...");
         this.logger.info("GPT Executor initialized... GPT Executor initialized... GPT Executor initialized...GPT Executor initialized... GPT Executor initialized... GPT Executor initialized... GPT Executor initialized... GPT Executor initialized...");
 

@@ -10,14 +10,14 @@ export class IndeedForm extends BaseExecutor {
     // Hardcoded for now as per previous implementation
     private url = "";
     private isProcessing = false;
-    private options?: { noClick?: boolean };
+    private options?: { isManual?: boolean };
 
 
     constructor(private page: Page) {
         super();
     }
 
-    init(url: string, options?: { noClick?: boolean }) {
+    onBegin(url: string, options?: { isManual?: boolean }) {
         this.url = url
         this.options = options;
         this.logger.info("Form Filler initialized...");
@@ -103,7 +103,7 @@ export class IndeedForm extends BaseExecutor {
             }
 
             if (continueButton) {
-                if (this.options?.noClick) {
+                if (this.options?.isManual) {
                     this.logger.info("Autofill done. Manual mode: Skipping automatic click on continue/submit.");
                     return;
                 }

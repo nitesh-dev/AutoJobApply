@@ -70,6 +70,8 @@ export type MessageMap = {
     'STOP_AUTOMATION': void;
     'FETCH_JOBS': void;
     'CLEAR_CACHE': void;
+    'ADD_MANUAL_JOB': { job: Job };
+    'REMOVE_MANUAL_JOB': { jobId: string };
 };
 
 export type MessageType = keyof MessageMap;
