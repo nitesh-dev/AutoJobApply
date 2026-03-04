@@ -27,11 +27,11 @@ export class IndeedHomeFinder extends BaseExecutor {
     }
 
     async handleMessage(message: ExtensionMessage) {
-        if (message.type === 'START_AUTOMATION') {
-            this.startScanning();
-        } else if (message.type === 'STOP_AUTOMATION') {
-            this.isScanning = false;
-        }
+        // if (message.type === 'START_AUTOMATION') {
+        //     this.startScanning();
+        // } else if (message.type === 'STOP_AUTOMATION') {
+        //     this.isScanning = false;
+        // }
     }
 
     private async startScanning() {

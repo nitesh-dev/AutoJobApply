@@ -15,17 +15,13 @@ export class IndeedFinder extends BaseExecutor {
     init(url: string, options?: { noClick?: boolean }) {
         this.logger.info("IndeedFinder initialized.");
         // Check if already running
-        api.getStats().then(stats => {
-            if (stats.isRunning) {
-                this.scanJobs();
-            }
-        });
+        this.scanJobs();
     }
 
     handleMessage(message: ExtensionMessage) {
-        if (message.type === 'START_AUTOMATION') {
-            this.scanJobs();
-        }
+        // if (message.type === 'START_AUTOMATION') {
+        //     this.scanJobs();
+        // }
     }
 
     async scanJobs() {
@@ -53,7 +49,7 @@ export class IndeedFinder extends BaseExecutor {
                 if (titleEl && linkEl && id && isEasilyApply) {
                     // Filter by location keywords
                     if (locationKeywords.length > 0) {
-                        const matches = locationKeywords.some(keyword => 
+                        const matches = locationKeywords.some(keyword =>
                             locationText.toLowerCase().includes(keyword.toLowerCase())
                         );
                         if (!matches) {
@@ -74,7 +70,7 @@ export class IndeedFinder extends BaseExecutor {
             });
 
             this.logger.success(`Found ${jobs.length} jobs.`);
-            console.log({jobs})
+            console.log({ jobs })
 
             await api.jobListFound(jobs);
 

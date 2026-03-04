@@ -48,7 +48,7 @@ export const AutomationControls = ({
           </button>
         )}
 
-        <button
+        {/* <button
           className="btn fetch-btn"
           onClick={onFetchJobs}
           style={{
@@ -58,7 +58,7 @@ export const AutomationControls = ({
         >
           <FetchIcon />
           Fetch Jobs
-        </button>
+        </button> */}
       </div>
     </div>
   );
