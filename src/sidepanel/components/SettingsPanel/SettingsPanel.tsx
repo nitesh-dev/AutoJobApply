@@ -72,7 +72,7 @@ export const SettingsPanel = ({
   };
 
   const removeResumeFile = () => {
-    updateConfig({ resumeFile: undefined });
+    updateConfig({ resumeFile: null as any });
   };
 
   return (
